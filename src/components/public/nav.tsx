@@ -18,8 +18,6 @@ export function Nav() {
     setMenuOpen(false);
   }, [pathname]);
 
-  if (pathname.startsWith("/admin")) return null;
-
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-6 py-5">
       <Link href="/" className="font-heading text-base text-gray-800 tracking-wider">

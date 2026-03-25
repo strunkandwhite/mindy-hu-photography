@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 const links = [
@@ -13,6 +13,10 @@ const links = [
 export function Nav() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
 
   if (pathname.startsWith("/admin")) return null;
 

@@ -5,14 +5,7 @@ import { contactSubmissions, siteSettings } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
-function sanitize(input: string): string {
-  return input
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#x27;");
-}
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function submitContactForm(formData: FormData) {
   const settings = await db.query.siteSettings.findFirst({
@@ -33,19 +26,17 @@ export async function submitContactForm(formData: FormData) {
     return { error: "Please fill in all required fields." };
   }
 
-  const sanitizedName = sanitize(name.trim());
-  const sanitizedEmail = sanitize(email.trim());
-  const sanitizedPhone = phone ? sanitize(phone.trim()) : null;
-  const sanitizedMessage = sanitize(message.trim());
-  const sanitizedSessionType = sanitize(sessionType);
+  if (!EMAIL_RE.test(email.trim())) {
+    return { error: "Please enter a valid email address." };
+  }
 
   await db.insert(contactSubmissions).values({
     id: randomUUID(),
-    name: sanitizedName,
-    email: sanitizedEmail,
-    phone: sanitizedPhone,
-    sessionType: sanitizedSessionType,
-    message: sanitizedMessage,
+    name: name.trim(),
+    email: email.trim(),
+    phone: phone ? phone.trim() : null,
+    sessionType,
+    message: message.trim(),
     isRead: 0,
     createdAt: new Date().toISOString(),
   });

@@ -10,7 +10,13 @@ export default async function PublicLayout({ children }: { children: React.React
   const settings = await db.query.siteSettings.findFirst({
     where: eq(siteSettings.id, "default"),
   });
-  const socialLinks = JSON.parse(settings?.socialLinks || "[]");
+
+  let socialLinks: { platform: string; url: string }[] = [];
+  try {
+    socialLinks = JSON.parse(settings?.socialLinks || "[]");
+  } catch {
+    socialLinks = [];
+  }
 
   return (
     <>

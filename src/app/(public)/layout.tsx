@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { db } from "@/db/client";
 import { siteSettings } from "@/db/schema";
 import { eq } from "drizzle-orm";

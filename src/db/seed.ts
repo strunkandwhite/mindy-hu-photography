@@ -25,7 +25,7 @@ async function seed() {
   console.log(`Admin user created: ${email}`);
 
   await db.insert(siteSettings).values({
-    id: crypto.randomUUID(),
+    id: "default",
     siteTitle: "Mindy Hu Photography",
     tagline: "",
     homepageHeroImageUrl: null,

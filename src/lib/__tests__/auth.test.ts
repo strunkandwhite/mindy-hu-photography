@@ -13,7 +13,7 @@ describe("createSessionCookie", () => {
     expect(cookie).toContain("HttpOnly");
     expect(cookie).toContain("Secure");
     expect(cookie).toContain("SameSite=Strict");
-    expect(cookie).toContain("Path=/admin");
+    expect(cookie).toContain("Path=/");
   });
 
   it("creates a clear cookie when sessionId is empty", () => {

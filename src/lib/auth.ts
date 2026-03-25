@@ -7,9 +7,9 @@ const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export function createSessionCookie(sessionId: string): string {
   if (!sessionId) {
-    return `${COOKIE_NAME}=; Path=/admin; Max-Age=0; HttpOnly; Secure; SameSite=Strict`;
+    return `${COOKIE_NAME}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict`;
   }
-  return `${COOKIE_NAME}=${sessionId}; Path=/admin; HttpOnly; Secure; SameSite=Strict`;
+  return `${COOKIE_NAME}=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Strict`;
 }
 
 export function parseSessionCookie(cookieHeader: string | null): string | null {

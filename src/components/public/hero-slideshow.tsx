@@ -63,37 +63,39 @@ export function HeroSlideshow({ images, interval = 6000 }: HeroSlideshowProps) {
 
   return (
     <div className="relative h-screen w-full overflow-hidden">
-      {/* Bottom layer: current image */}
-      <div className="absolute inset-0 z-0" key={`current-${current}`}>
-        <Image
-          src={currentImage.thumbnailUrl}
-          alt={currentImage.altText || currentImage.filename}
-          fill
-          className="object-cover animate-[kenburns_12s_ease-in-out_forwards]"
-          sizes="100vw"
-          priority
-        />
-      </div>
-
-      {/* Top layer: next image, fades in */}
-      {images.length > 1 && (
-        <div
-          className="absolute inset-0 z-10"
-          key={`next-${next}`}
-          style={{
-            opacity: fading ? 1 : 0,
-            transition: `opacity ${FADE_DURATION}ms ease-in-out`,
-          }}
-        >
+      {/* Ken Burns zoom applied to a persistent container — never remounts */}
+      <div className="absolute inset-0 animate-[kenburns_20s_ease-in-out_infinite_alternate]">
+        {/* Bottom layer: current image */}
+        <div className="absolute inset-0 z-0">
           <Image
-            src={nextImage.thumbnailUrl}
-            alt={nextImage.altText || nextImage.filename}
+            src={currentImage.thumbnailUrl}
+            alt={currentImage.altText || currentImage.filename}
             fill
-            className="object-cover animate-[kenburns_12s_ease-in-out_forwards]"
+            className="object-cover"
             sizes="100vw"
+            priority
           />
         </div>
-      )}
+
+        {/* Top layer: next image, fades in */}
+        {images.length > 1 && (
+          <div
+            className="absolute inset-0 z-10"
+            style={{
+              opacity: fading ? 1 : 0,
+              transition: `opacity ${FADE_DURATION}ms ease-in-out`,
+            }}
+          >
+            <Image
+              src={nextImage.thumbnailUrl}
+              alt={nextImage.altText || nextImage.filename}
+              fill
+              className="object-cover"
+              sizes="100vw"
+            />
+          </div>
+        )}
+      </div>
 
       {/* Dark overlay for text readability */}
       <div className="absolute inset-0 z-20 bg-black/35" />

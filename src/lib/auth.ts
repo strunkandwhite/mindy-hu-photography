@@ -1,15 +1,16 @@
 import { eq } from "drizzle-orm";
-import type { LibSQLDatabase } from "drizzle-orm/libsql";
-import type { sessions as sessionsTable } from "@/db/schema";
+import { db } from "@/db/client";
+import { sessions } from "@/db/schema";
 
 const COOKIE_NAME = "admin_session";
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const SESSION_DURATION_SECONDS = Math.floor(SESSION_DURATION_MS / 1000);
 
 export function createSessionCookie(sessionId: string): string {
   if (!sessionId) {
     return `${COOKIE_NAME}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict`;
   }
-  return `${COOKIE_NAME}=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Strict`;
+  return `${COOKIE_NAME}=${sessionId}; Path=/; Max-Age=${SESSION_DURATION_SECONDS}; HttpOnly; Secure; SameSite=Strict`;
 }
 
 export function parseSessionCookie(cookieHeader: string | null): string | null {
@@ -36,15 +37,10 @@ export function getNewExpiresAt(): string {
 
 /**
  * Validates a session from the incoming request's cookies.
- * Parses the cookie, looks up the session in DB, checks expiry,
- * and refreshes the expires_at timestamp if valid.
  * Returns the sessionId if valid, null otherwise.
  */
 export async function validateSession(
   request: { headers: { get(name: string): string | null } },
-  db: LibSQLDatabase<Record<string, unknown>>,
-  table: typeof sessionsTable,
-  eqFn: typeof eq,
 ): Promise<string | null> {
   const cookieHeader = request.headers.get("cookie");
   const sessionId = parseSessionCookie(cookieHeader);
@@ -52,23 +48,23 @@ export async function validateSession(
 
   const rows = await db
     .select()
-    .from(table)
-    .where(eqFn(table.id, sessionId))
+    .from(sessions)
+    .where(eq(sessions.id, sessionId))
     .limit(1);
 
   const session = rows[0];
   if (!session) return null;
 
   if (isSessionExpired(session.expiresAt)) {
-    await db.delete(table).where(eqFn(table.id, sessionId));
+    await db.delete(sessions).where(eq(sessions.id, sessionId));
     return null;
   }
 
   // Refresh the session expiry
   await db
-    .update(table)
+    .update(sessions)
     .set({ expiresAt: getNewExpiresAt() })
-    .where(eqFn(table.id, sessionId));
+    .where(eq(sessions.id, sessionId));
 
   return sessionId;
 }

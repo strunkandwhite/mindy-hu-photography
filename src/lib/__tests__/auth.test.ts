@@ -7,13 +7,15 @@ import {
 } from "../auth";
 
 describe("createSessionCookie", () => {
-  it("creates a cookie with the session ID", () => {
+  it("creates a cookie with the session ID and Max-Age", () => {
     const cookie = createSessionCookie("abc123");
     expect(cookie).toContain("admin_session=abc123");
     expect(cookie).toContain("HttpOnly");
     expect(cookie).toContain("Secure");
     expect(cookie).toContain("SameSite=Strict");
     expect(cookie).toContain("Path=/");
+    expect(cookie).toContain("Max-Age=604800");
+    expect(cookie).not.toContain("Max-Age=0");
   });
 
   it("creates a clear cookie when sessionId is empty", () => {

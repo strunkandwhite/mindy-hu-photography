@@ -1,10 +1,10 @@
 import { validateSession } from "@/lib/auth";
 import { db } from "@/db/client";
-import { sessions, contactSubmissions } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { contactSubmissions } from "@/db/schema";
+import { desc } from "drizzle-orm";
 
 export async function GET(request: Request) {
-  const sessionId = await validateSession(request, db, sessions, eq);
+  const sessionId = await validateSession(request);
   if (!sessionId) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }

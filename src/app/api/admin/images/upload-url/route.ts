@@ -1,7 +1,4 @@
 import { validateSession } from "@/lib/auth";
-import { db } from "@/db/client";
-import { sessions } from "@/db/schema";
-import { eq } from "drizzle-orm";
 import { getS3Key, createPresignedUploadUrl } from "@/lib/s3";
 
 const ALLOWED_TYPES = new Set([
@@ -19,7 +16,7 @@ const EXT_MAP: Record<string, string> = {
 };
 
 export async function POST(request: Request) {
-  const sessionId = await validateSession(request, db, sessions, eq);
+  const sessionId = await validateSession(request);
   if (!sessionId) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }

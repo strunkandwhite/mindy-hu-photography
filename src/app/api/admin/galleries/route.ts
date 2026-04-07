@@ -1,11 +1,11 @@
 import { validateSession } from "@/lib/auth";
 import { db } from "@/db/client";
-import { sessions, galleries } from "@/db/schema";
+import { galleries } from "@/db/schema";
 import { eq, max } from "drizzle-orm";
 import { slugify } from "@/lib/slugify";
 
 export async function POST(request: Request) {
-  const sessionId = await validateSession(request, db, sessions, eq);
+  const sessionId = await validateSession(request);
   if (!sessionId) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
-  const sessionId = await validateSession(request, db, sessions, eq);
+  const sessionId = await validateSession(request);
   if (!sessionId) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }

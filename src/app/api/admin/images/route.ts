@@ -1,12 +1,12 @@
 import { validateSession } from "@/lib/auth";
 import { db } from "@/db/client";
-import { sessions, images, galleries } from "@/db/schema";
+import { images, galleries } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getCdnUrl, getThumbnailKey, uploadBuffer, deleteS3Object } from "@/lib/s3";
 import { processImage } from "@/lib/images";
 
 export async function POST(request: Request) {
-  const sessionId = await validateSession(request, db, sessions, eq);
+  const sessionId = await validateSession(request);
   if (!sessionId) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const sessionId = await validateSession(request, db, sessions, eq);
+  const sessionId = await validateSession(request);
   if (!sessionId) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }

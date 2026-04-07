@@ -220,7 +220,7 @@ thumbnails/{image_id}.webp    — smaller versions for grids
 
 - **Auth:** bcrypt password hashing, HTTP-only secure SameSite=Strict session cookies
 - **Presigned URLs:** 5-minute expiry, scoped to specific S3 key prefixes
-- **Contact form:** Rate-limited to 5 submissions per IP per hour
+- **Contact form:** Rate-limited to 5 submissions per email per hour
 - **CSRF:** Next.js Server Actions provide built-in CSRF protection. Admin API routes use same-origin checks via SameSite cookie.
 - **Input sanitization:** All contact form fields sanitized before storage
 - **Slugs:** Auto-generated from gallery title (kebab-case). Editable in admin but uniqueness enforced. No redirect on slug change (acceptable for a small site).

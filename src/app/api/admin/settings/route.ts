@@ -16,7 +16,7 @@ export async function PUT(request: Request) {
     aboutImageUrl?: string | null;
     contactEmail?: string;
     contactFormEnabled?: number;
-    socialLinks?: string | string[];
+    socialLinks?: string;
   };
   try {
     body = await request.json();
@@ -32,11 +32,7 @@ export async function PUT(request: Request) {
   if (body.contactEmail !== undefined) updates.contactEmail = body.contactEmail;
   if (body.contactFormEnabled !== undefined)
     updates.contactFormEnabled = body.contactFormEnabled;
-  if (body.socialLinks !== undefined) {
-    updates.socialLinks = Array.isArray(body.socialLinks)
-      ? JSON.stringify(body.socialLinks)
-      : body.socialLinks;
-  }
+  if (body.socialLinks !== undefined) updates.socialLinks = body.socialLinks;
 
   if (Object.keys(updates).length === 0) {
     return Response.json({ error: "No fields to update" }, { status: 400 });

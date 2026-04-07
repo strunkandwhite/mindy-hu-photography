@@ -1,11 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-
-type SocialLink = {
-  platform: string;
-  url: string;
-};
+import { parseSocialLinks, type SocialLink } from "@/lib/settings";
 
 type SettingsData = {
   siteTitle: string;
@@ -29,14 +25,7 @@ export default function SettingsForm({
     settings.contactFormEnabled === 1,
   );
 
-  const parsedLinks: SocialLink[] = (() => {
-    try {
-      return JSON.parse(settings.socialLinks);
-    } catch {
-      return [];
-    }
-  })();
-  const [socialLinks, setSocialLinks] = useState<SocialLink[]>(parsedLinks);
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>(parseSocialLinks(settings.socialLinks));
 
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");

@@ -14,6 +14,17 @@ export async function PUT(
 
   const { id } = await params;
 
+  // Check existence first
+  const existing = await db
+    .select()
+    .from(galleries)
+    .where(eq(galleries.id, id))
+    .limit(1);
+
+  if (!existing[0]) {
+    return Response.json({ error: "Gallery not found" }, { status: 404 });
+  }
+
   let body: {
     title?: string;
     slug?: string;
@@ -25,6 +36,21 @@ export async function PUT(
     body = await request.json();
   } catch {
     return Response.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  // Slug uniqueness check
+  if (body.slug !== undefined && body.slug !== existing[0].slug) {
+    const slugConflict = await db
+      .select({ id: galleries.id })
+      .from(galleries)
+      .where(eq(galleries.slug, body.slug))
+      .limit(1);
+    if (slugConflict.length > 0) {
+      return Response.json(
+        { error: "A gallery with this slug already exists" },
+        { status: 409 },
+      );
+    }
   }
 
   const updates: Record<string, unknown> = { updatedAt: new Date().toISOString() };
@@ -41,10 +67,6 @@ export async function PUT(
     .from(galleries)
     .where(eq(galleries.id, id))
     .limit(1);
-
-  if (!rows[0]) {
-    return Response.json({ error: "Gallery not found" }, { status: 404 });
-  }
 
   return Response.json(rows[0]);
 }

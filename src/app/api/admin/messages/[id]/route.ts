@@ -14,6 +14,17 @@ export async function PUT(
 
   const { id } = await params;
 
+  // Check existence first
+  const existing = await db
+    .select()
+    .from(contactSubmissions)
+    .where(eq(contactSubmissions.id, id))
+    .limit(1);
+
+  if (!existing[0]) {
+    return Response.json({ error: "Message not found" }, { status: 404 });
+  }
+
   let body: { isRead?: number };
   try {
     body = await request.json();
@@ -25,22 +36,16 @@ export async function PUT(
     return Response.json({ error: "isRead is required" }, { status: 400 });
   }
 
+  if (body.isRead !== 0 && body.isRead !== 1) {
+    return Response.json({ error: "isRead must be 0 or 1" }, { status: 400 });
+  }
+
   await db
     .update(contactSubmissions)
     .set({ isRead: body.isRead })
     .where(eq(contactSubmissions.id, id));
 
-  const rows = await db
-    .select()
-    .from(contactSubmissions)
-    .where(eq(contactSubmissions.id, id))
-    .limit(1);
-
-  if (!rows[0]) {
-    return Response.json({ error: "Message not found" }, { status: 404 });
-  }
-
-  return Response.json(rows[0]);
+  return Response.json({ ...existing[0], isRead: body.isRead });
 }
 
 export async function DELETE(

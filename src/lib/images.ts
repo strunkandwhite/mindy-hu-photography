@@ -10,8 +10,7 @@ const THUMBNAIL_MAX_EDGE = 800;
 const THUMBNAIL_QUALITY = 80;
 
 export async function processImage(buffer: Buffer): Promise<ProcessedImage> {
-  const image = sharp(buffer).rotate(); // auto-rotate based on EXIF orientation
-
+  const image = sharp(buffer).rotate();
   const metadata = await image.metadata();
   const width = metadata.width!;
   const height = metadata.height!;
@@ -19,8 +18,7 @@ export async function processImage(buffer: Buffer): Promise<ProcessedImage> {
   const longEdge = Math.max(width, height);
   const needsResize = longEdge > THUMBNAIL_MAX_EDGE;
 
-  // Sharp strips EXIF metadata by default (no withMetadata() call needed)
-  let thumbnailPipeline = sharp(buffer).rotate();
+  let thumbnailPipeline = image.clone();
 
   if (needsResize) {
     if (width >= height) {

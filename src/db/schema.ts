@@ -20,7 +20,6 @@ export const siteSettings = sqliteTable("site_settings", {
   id: text("id").primaryKey(),
   siteTitle: text("site_title").notNull(),
   tagline: text("tagline").default("").notNull(),
-  homepageHeroImageUrl: text("homepage_hero_image_url"),
   aboutText: text("about_text").default("").notNull(),
   aboutImageUrl: text("about_image_url"),
   contactEmail: text("contact_email").default("").notNull(),

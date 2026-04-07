@@ -28,7 +28,6 @@ async function seed() {
     id: "default",
     siteTitle: "Mindy Hu Photography",
     tagline: "",
-    homepageHeroImageUrl: null,
     aboutText: "",
     aboutImageUrl: null,
     contactEmail: "",

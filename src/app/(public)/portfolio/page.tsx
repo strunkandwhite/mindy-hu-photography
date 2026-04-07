@@ -13,22 +13,24 @@ export default async function PortfolioPage() {
           {galleriesWithCovers.map((gallery) => (
             <Link key={gallery.id} href={`/portfolio/${gallery.slug}`} className="group block">
               {gallery.coverImage ? (
-                <div className="overflow-hidden">
+                <div className="relative overflow-hidden">
                   <Image
                     src={gallery.coverImage.thumbnailUrl}
                     alt={gallery.coverImage.altText || gallery.title}
                     width={gallery.coverImage.width}
                     height={gallery.coverImage.height}
-                    className="w-full object-cover aspect-[3/4] transition-transform duration-500 group-hover:scale-[1.02]"
+                    className="w-full object-cover aspect-[3/4] transition-all duration-500 group-hover:scale-[1.03] group-hover:brightness-[0.85]"
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   />
+                  <div className="absolute inset-0 flex items-end p-4 opacity-100 md:opacity-0 md:group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300">
+                    <h2 className="text-xs text-white tracking-widest">
+                      {gallery.title.toUpperCase()}
+                    </h2>
+                  </div>
                 </div>
               ) : (
                 <div className="bg-gray-100 aspect-[3/4]" />
               )}
-              <h2 className="text-xs text-gray-500 tracking-widest mt-3">
-                {gallery.title.toUpperCase()}
-              </h2>
             </Link>
           ))}
         </div>

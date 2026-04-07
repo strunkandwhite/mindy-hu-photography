@@ -10,11 +10,6 @@ test("portfolio page loads", async ({ page }) => {
   await expect(page.locator("text=Portfolio")).toBeVisible();
 });
 
-test("about page loads", async ({ page }) => {
-  await page.goto("/about");
-  await expect(page.locator("text=About")).toBeVisible();
-});
-
 test("contact page loads", async ({ page }) => {
   await page.goto("/contact");
   await expect(page.locator("text=Contact")).toBeVisible();

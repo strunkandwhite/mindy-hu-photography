@@ -4,3 +4,12 @@
   --font-heading: var(--font-serif);
   --font-body: var(--font-sans);
 }
+
+@keyframes kenburns {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.08);
+  }
+}

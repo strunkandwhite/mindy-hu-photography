@@ -1,20 +1,31 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 const links = [
   { href: "/portfolio", label: "Portfolio" },
-  { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
 
 export function Nav() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
+  const isHome = pathname === "/";
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-6 py-5">
-      <Link href="/" className="font-heading text-base text-gray-800 tracking-wider">
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-6 py-5 transition-colors duration-300 ${
+        isHome ? "" : "bg-white/90 backdrop-blur-sm"
+      }`}
+    >
+      <Link
+        href="/"
+        className={`font-heading text-base tracking-wider ${
+          isHome ? "text-white" : "text-gray-800"
+        }`}
+      >
         MH
       </Link>
       {/* Desktop nav */}
@@ -23,7 +34,11 @@ export function Nav() {
           <Link
             key={link.href}
             href={link.href}
-            className="text-xs text-gray-500 tracking-widest hover:text-gray-900 transition-colors"
+            className={`text-xs tracking-widest transition-colors ${
+              isHome
+                ? "text-white/80 hover:text-white"
+                : "text-gray-500 hover:text-gray-900"
+            }`}
           >
             {link.label.toUpperCase()}
           </Link>
@@ -31,7 +46,7 @@ export function Nav() {
       </div>
       {/* Mobile hamburger */}
       <button
-        className="md:hidden text-gray-600"
+        className={`md:hidden ${isHome ? "text-white" : "text-gray-600"}`}
         onClick={() => setMenuOpen(!menuOpen)}
         aria-label="Toggle menu"
       >

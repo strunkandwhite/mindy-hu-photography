@@ -5,7 +5,7 @@ import * as schema from "./schema";
 
 let _db: LibSQLDatabase<typeof schema> | null = null;
 
-export function getDb(): LibSQLDatabase<typeof schema> {
+function getDb(): LibSQLDatabase<typeof schema> {
   if (!_db) {
     const client = createClient({
       url: process.env.TURSO_DATABASE_URL!,

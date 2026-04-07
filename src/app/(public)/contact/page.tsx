@@ -14,7 +14,7 @@ export default async function ContactPage() {
         <div className="text-center mb-10">
           <h1 className="font-heading text-2xl text-gray-900">Contact</h1>
           <p className="text-sm text-gray-500 mt-2">
-            Interested in booking a session? I'd love to hear from you.
+            Interested in booking a session? I&apos;d love to hear from you.
           </p>
         </div>
         {settings?.contactFormEnabled ? (

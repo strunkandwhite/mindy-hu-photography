@@ -20,10 +20,21 @@ interface HeroSlideshowProps {
 
 const FADE_DURATION = 1500;
 
+/**
+ * Flicker-free crossfade using the "fade out top layer" technique.
+ *
+ * Both layers are always opacity 1 except during the fade. To transition:
+ * 1. Set bottom src to NEXT image (hidden behind opaque top)
+ * 2. Fade top layer OUT (1→0), revealing bottom
+ * 3. After fade: snap top opacity back to 1 (no transition), set top src = bottom src
+ *    Both layers now show the same image — the snap is invisible.
+ */
 export function HeroSlideshow({ images, interval = 6000 }: HeroSlideshowProps) {
-  const [current, setCurrent] = useState(0);
-  const [next, setNext] = useState(images.length > 1 ? 1 : 0);
-  const [fading, setFading] = useState(false);
+  const [topImage, setTopImage] = useState(images[0]);
+  const [bottomImage, setBottomImage] = useState(images[0]);
+  const [topOpacity, setTopOpacity] = useState(1);
+  const [animate, setAnimate] = useState(false);
+  const indexRef = useRef(0);
   const waitRef = useRef<ReturnType<typeof setTimeout>>(null);
   const fadeRef = useRef<ReturnType<typeof setTimeout>>(null);
 
@@ -34,17 +45,32 @@ export function HeroSlideshow({ images, interval = 6000 }: HeroSlideshowProps) {
     function cycle() {
       waitRef.current = setTimeout(() => {
         if (cancelled) return;
-        setFading(true);
-        fadeRef.current = setTimeout(() => {
+
+        // Step 1: Load next image on the bottom layer (hidden behind opaque top)
+        const nextIndex = (indexRef.current + 1) % images.length;
+        setBottomImage(images[nextIndex]);
+
+        // Step 2: After a frame (so browser loads the new bottom src),
+        // enable transition and fade top out
+        requestAnimationFrame(() => {
           if (cancelled) return;
-          setCurrent((prev) => {
-            const newCurrent = (prev + 1) % images.length;
-            setNext((newCurrent + 1) % images.length);
-            return newCurrent;
-          });
-          setFading(false);
-          cycle();
-        }, FADE_DURATION);
+          setAnimate(true);
+          setTopOpacity(0);
+
+          // Step 3: After fade completes, reset
+          fadeRef.current = setTimeout(() => {
+            if (cancelled) return;
+            indexRef.current = nextIndex;
+
+            // Disable transition, snap top back to opaque, update top src to match bottom
+            setAnimate(false);
+            setTopImage(images[nextIndex]);
+            setTopOpacity(1);
+
+            // Schedule next cycle
+            cycle();
+          }, FADE_DURATION);
+        });
       }, interval);
     }
     cycle();
@@ -54,47 +80,44 @@ export function HeroSlideshow({ images, interval = 6000 }: HeroSlideshowProps) {
       if (waitRef.current) clearTimeout(waitRef.current);
       if (fadeRef.current) clearTimeout(fadeRef.current);
     };
-  }, [images.length, interval]);
+  }, [images, interval]);
 
   if (images.length === 0) return null;
 
-  const currentImage = images[current];
-  const nextImage = images[next];
-
   return (
     <div className="relative h-screen w-full overflow-hidden">
-      {/* Ken Burns zoom applied to a persistent container — never remounts */}
+      {/* Ken Burns zoom on a persistent container */}
       <div className="absolute inset-0 animate-[kenburns_20s_ease-in-out_infinite_alternate]">
-        {/* Bottom layer: current image */}
+        {/* Bottom layer: next image loads here before fade */}
         <div className="absolute inset-0 z-0">
           <Image
-            src={currentImage.thumbnailUrl}
-            alt={currentImage.altText || currentImage.filename}
+            src={bottomImage.thumbnailUrl}
+            alt={bottomImage.altText || bottomImage.filename}
+            fill
+            className="object-cover"
+            sizes="100vw"
+          />
+        </div>
+
+        {/* Top layer: fades OUT to reveal bottom */}
+        <div
+          className="absolute inset-0 z-10"
+          style={{
+            opacity: topOpacity,
+            transition: animate
+              ? `opacity ${FADE_DURATION}ms ease-in-out`
+              : "none",
+          }}
+        >
+          <Image
+            src={topImage.thumbnailUrl}
+            alt={topImage.altText || topImage.filename}
             fill
             className="object-cover"
             sizes="100vw"
             priority
           />
         </div>
-
-        {/* Top layer: next image, fades in */}
-        {images.length > 1 && (
-          <div
-            className="absolute inset-0 z-10"
-            style={{
-              opacity: fading ? 1 : 0,
-              transition: `opacity ${FADE_DURATION}ms ease-in-out`,
-            }}
-          >
-            <Image
-              src={nextImage.thumbnailUrl}
-              alt={nextImage.altText || nextImage.filename}
-              fill
-              className="object-cover"
-              sizes="100vw"
-            />
-          </div>
-        )}
       </div>
 
       {/* Dark overlay for text readability */}

@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, type DragEvent } from "react";
 import { useRouter } from "next/navigation";
 
 type UploadState = {
+  id: string;
   filename: string;
   status: "pending" | "uploading" | "registering" | "done" | "error";
   error?: string;
@@ -26,12 +27,23 @@ export default function ImageUploader() {
 
   const processFiles = useCallback(
     async (files: File[]) => {
-      const validFiles = files.filter((f) => {
-        if (!ACCEPTED_TYPES.has(f.type)) return false;
-        return true;
-      });
+      const validFiles: File[] = [];
+      const rejectedUploads: UploadState[] = [];
 
-      if (validFiles.length === 0) return;
+      for (const f of files) {
+        if (!ACCEPTED_TYPES.has(f.type)) {
+          rejectedUploads.push({
+            id: crypto.randomUUID(),
+            filename: f.name,
+            status: "error",
+            error: "Unsupported file type",
+          });
+        } else {
+          validFiles.push(f);
+        }
+      }
+
+      if (validFiles.length === 0 && rejectedUploads.length === 0) return;
 
       // Warn about large files
       const largeFiles = validFiles.filter(
@@ -46,25 +58,24 @@ export default function ImageUploader() {
       }
 
       const newUploads: UploadState[] = validFiles.map((f) => ({
+        id: crypto.randomUUID(),
         filename: f.name,
         status: "pending",
       }));
-      setUploads((prev) => [...prev, ...newUploads]);
+
+      setUploads((prev) => [...prev, ...rejectedUploads, ...newUploads]);
 
       for (let i = 0; i < validFiles.length; i++) {
         const file = validFiles[i];
-        const uploadIndex = uploads.length + i;
+        const uploadId = newUploads[i].id;
 
         const update = (patch: Partial<UploadState>) => {
           setUploads((prev) =>
-            prev.map((u, idx) =>
-              idx === uploadIndex ? { ...u, ...patch } : u,
-            ),
+            prev.map((u) => (u.id === uploadId ? { ...u, ...patch } : u)),
           );
         };
 
         try {
-          // 1. Get presigned URL
           update({ status: "uploading" });
           const presignRes = await fetch("/api/admin/images/upload-url", {
             method: "POST",
@@ -83,7 +94,6 @@ export default function ImageUploader() {
 
           const { uploadUrl, imageId, s3Key, ext } = await presignRes.json();
 
-          // 2. Upload to S3
           const uploadRes = await fetch(uploadUrl, {
             method: "PUT",
             headers: { "Content-Type": file.type },
@@ -95,7 +105,6 @@ export default function ImageUploader() {
             continue;
           }
 
-          // 3. Register image
           update({ status: "registering" });
           const registerRes = await fetch("/api/admin/images", {
             method: "POST",
@@ -120,7 +129,7 @@ export default function ImageUploader() {
 
       router.refresh();
     },
-    [uploads.length, router],
+    [router],
   );
 
   function handleDragOver(e: DragEvent) {
@@ -187,9 +196,9 @@ export default function ImageUploader() {
               {activeUploads.length === 1 ? "" : "s"}...
             </p>
           )}
-          {uploads.map((u, i) => (
+          {uploads.map((u) => (
             <div
-              key={i}
+              key={u.id}
               className="flex items-center justify-between text-xs py-1"
             >
               <span className="text-gray-700 truncate mr-2">{u.filename}</span>

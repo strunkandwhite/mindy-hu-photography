@@ -1,16 +1,13 @@
-import { db } from "@/db/client";
-import { siteSettings } from "@/db/schema";
-import { eq } from "drizzle-orm";
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import Image from "next/image";
 import { getPublishedGalleriesWithCovers } from "@/lib/galleries";
+import { getSettings } from "@/lib/settings";
 
 export default async function HomePage() {
   const galleriesWithCovers = await getPublishedGalleriesWithCovers();
-
-  const settings = await db.query.siteSettings.findFirst({
-    where: eq(siteSettings.id, "default"),
-  });
+  const settings = await getSettings();
 
   return (
     <div className="min-h-screen">
@@ -36,7 +33,7 @@ export default async function HomePage() {
                 {gallery.coverImage ? (
                   <div className="relative overflow-hidden">
                     <Image
-                      src={gallery.coverImage.cdnUrl}
+                      src={gallery.coverImage.thumbnailUrl}
                       alt={gallery.coverImage.altText || gallery.title}
                       width={gallery.coverImage.width}
                       height={gallery.coverImage.height}

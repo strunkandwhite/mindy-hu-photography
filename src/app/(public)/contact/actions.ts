@@ -2,9 +2,9 @@
 
 import { db } from "@/db/client";
 import { contactSubmissions, siteSettings } from "@/db/schema";
-import { eq, and, gt } from "drizzle-orm";
+import { eq, and, gt, count } from "drizzle-orm";
 import { randomUUID } from "crypto";
-import { count } from "drizzle-orm";
+import { SETTINGS_ID } from "@/lib/settings";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const RATE_LIMIT_MAX = 5;
@@ -12,7 +12,7 @@ const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 
 export async function submitContactForm(formData: FormData) {
   const settings = await db.query.siteSettings.findFirst({
-    where: eq(siteSettings.id, "default"),
+    where: eq(siteSettings.id, SETTINGS_ID),
   });
 
   if (!settings?.contactFormEnabled) {

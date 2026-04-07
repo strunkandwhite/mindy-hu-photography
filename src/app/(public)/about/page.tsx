@@ -1,12 +1,10 @@
-import { db } from "@/db/client";
-import { siteSettings } from "@/db/schema";
-import { eq } from "drizzle-orm";
+export const dynamic = "force-dynamic";
+
 import Image from "next/image";
+import { getSettings } from "@/lib/settings";
 
 export default async function AboutPage() {
-  const settings = await db.query.siteSettings.findFirst({
-    where: eq(siteSettings.id, "default"),
-  });
+  const settings = await getSettings();
 
   return (
     <div className="min-h-screen">

@@ -1,12 +1,10 @@
-import { db } from "@/db/client";
-import { siteSettings } from "@/db/schema";
-import { eq } from "drizzle-orm";
+export const dynamic = "force-dynamic";
+
+import { getSettings } from "@/lib/settings";
 import { ContactForm } from "@/components/public/contact-form";
 
 export default async function ContactPage() {
-  const settings = await db.query.siteSettings.findFirst({
-    where: eq(siteSettings.id, "default"),
-  });
+  const settings = await getSettings();
 
   return (
     <div className="min-h-screen">
@@ -21,7 +19,14 @@ export default async function ContactPage() {
           <ContactForm />
         ) : (
           <p className="text-center text-sm text-gray-400">
-            Contact form is currently unavailable. Please reach out via email.
+            Contact form is currently unavailable.
+            {settings?.contactEmail && (
+              <> Please reach out at{" "}
+                <a href={`mailto:${settings.contactEmail}`} className="text-gray-600 underline">
+                  {settings.contactEmail}
+                </a>.
+              </>
+            )}
           </p>
         )}
       </div>

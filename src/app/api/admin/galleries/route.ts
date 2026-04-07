@@ -83,12 +83,14 @@ export async function PUT(request: Request) {
 
   const now = new Date().toISOString();
 
-  for (const item of order) {
-    await db
-      .update(galleries)
-      .set({ sortOrder: item.sortOrder, updatedAt: now })
-      .where(eq(galleries.id, item.id));
-  }
+  await Promise.all(
+    order.map((item) =>
+      db
+        .update(galleries)
+        .set({ sortOrder: item.sortOrder, updatedAt: now })
+        .where(eq(galleries.id, item.id))
+    )
+  );
 
   return Response.json({ success: true });
 }

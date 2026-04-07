@@ -24,12 +24,14 @@ export async function PUT(request: Request) {
     );
   }
 
-  for (const imageId of imageIds) {
-    await db
-      .update(images)
-      .set({ galleryId: galleryId ?? null })
-      .where(eq(images.id, imageId));
-  }
+  await Promise.all(
+    imageIds.map((imageId) =>
+      db
+        .update(images)
+        .set({ galleryId: galleryId ?? null })
+        .where(eq(images.id, imageId))
+    )
+  );
 
   return Response.json({ success: true });
 }

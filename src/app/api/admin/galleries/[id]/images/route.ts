@@ -24,12 +24,14 @@ export async function PUT(request: Request) {
     );
   }
 
-  for (const item of order) {
-    await db
-      .update(images)
-      .set({ sortOrder: item.sortOrder })
-      .where(eq(images.id, item.id));
-  }
+  await Promise.all(
+    order.map((item) =>
+      db
+        .update(images)
+        .set({ sortOrder: item.sortOrder })
+        .where(eq(images.id, item.id))
+    )
+  );
 
   return Response.json({ success: true });
 }

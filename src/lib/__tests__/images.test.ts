@@ -41,6 +41,19 @@ describe("processImage", () => {
     expect(thumbMeta.format).toBe("webp");
   });
 
+  it("resizes square image to 800px on width (>= branch)", async () => {
+    const input = await createTestImage(1200, 1200);
+    const result = await processImage(input);
+
+    expect(result.width).toBe(1200);
+    expect(result.height).toBe(1200);
+
+    const thumbMeta = await sharp(result.thumbnail).metadata();
+    expect(thumbMeta.width).toBe(800);
+    expect(thumbMeta.height).toBe(800);
+    expect(thumbMeta.format).toBe("webp");
+  });
+
   it("does not upscale small images", async () => {
     const input = await createTestImage(400, 300);
     const result = await processImage(input);

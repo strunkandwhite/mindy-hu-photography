@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import bcrypt from "bcryptjs";
 
-describe("seed: bcrypt hashing", () => {
+describe("bcrypt hashing", () => {
   it("hashes a password and verifies it with the correct password", async () => {
     const password = "test-password-123";
     const hash = await bcrypt.hash(password, 10);

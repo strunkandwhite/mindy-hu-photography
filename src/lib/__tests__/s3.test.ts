@@ -1,5 +1,19 @@
-import { describe, it, expect } from "vitest";
-import { getS3Key, getThumbnailKey } from "../s3";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { getS3Key, getThumbnailKey, getCdnUrl } from "../s3";
+
+const originalCloudfrontDomain = process.env.CLOUDFRONT_DOMAIN;
+
+beforeEach(() => {
+  process.env.CLOUDFRONT_DOMAIN = "cdn.example.com";
+});
+
+afterEach(() => {
+  if (originalCloudfrontDomain) {
+    process.env.CLOUDFRONT_DOMAIN = originalCloudfrontDomain;
+  } else {
+    delete process.env.CLOUDFRONT_DOMAIN;
+  }
+});
 
 describe("S3 key generation helpers", () => {
   it("generates correct original key", () => {
@@ -9,5 +23,11 @@ describe("S3 key generation helpers", () => {
 
   it("generates correct thumbnail key", () => {
     expect(getThumbnailKey("abc-123")).toBe("thumbnails/abc-123.webp");
+  });
+});
+
+describe("getCdnUrl", () => {
+  it("constructs CloudFront URL from key", () => {
+    expect(getCdnUrl("originals/abc.jpg")).toBe("https://cdn.example.com/originals/abc.jpg");
   });
 });

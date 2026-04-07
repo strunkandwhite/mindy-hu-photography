@@ -22,4 +22,16 @@ describe("slugify", () => {
   it("handles mixed alphanumeric", () => {
     expect(slugify("Photo Set 2024")).toBe("photo-set-2024");
   });
+
+  it("returns empty string for empty input", () => {
+    expect(slugify("")).toBe("");
+  });
+
+  it("returns empty string for whitespace-only input", () => {
+    expect(slugify("   ")).toBe("");
+  });
+
+  it("returns empty string for all-special-characters input", () => {
+    expect(slugify("!!!@@@###")).toBe("");
+  });
 });

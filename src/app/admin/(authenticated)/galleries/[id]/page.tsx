@@ -4,6 +4,7 @@ import { galleries, images } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
 import GalleryForm from "@/components/admin/gallery-form";
 import Image from "next/image";
+import type { Category } from "@/lib/categories";
 
 export default async function EditGalleryPage({
   params,
@@ -38,6 +39,7 @@ export default async function EditGalleryPage({
           slug: gallery.slug,
           description: gallery.description,
           isPublished: gallery.isPublished,
+          category: gallery.category as Category | null,
         }}
       />
 

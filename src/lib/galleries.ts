@@ -1,7 +1,6 @@
 import { db } from "@/db/client";
 import { galleries, images } from "@/db/schema";
-import { eq, asc, and, inArray } from "drizzle-orm";
-import type { Category } from "./categories";
+import { eq, asc, inArray } from "drizzle-orm";
 
 export async function getPublishedGalleriesWithCovers() {
   const publishedGalleries = await db.query.galleries.findMany({
@@ -18,29 +17,6 @@ export async function getPublishedGalleriesWithCovers() {
       ? await db.query.images.findMany({
           where: inArray(images.id, coverIds),
         })
-      : [];
-
-  const coverMap = new Map(coverImages.map((img) => [img.id, img]));
-
-  return publishedGalleries.map((gallery) => ({
-    ...gallery,
-    coverImage: gallery.coverImageId ? coverMap.get(gallery.coverImageId) ?? null : null,
-  }));
-}
-
-export async function getPublishedGalleriesByCategory(category: Category) {
-  const publishedGalleries = await db.query.galleries.findMany({
-    where: and(eq(galleries.isPublished, 1), eq(galleries.category, category)),
-    orderBy: asc(galleries.sortOrder),
-  });
-
-  const coverIds = publishedGalleries
-    .map((g) => g.coverImageId)
-    .filter((id): id is string => id !== null);
-
-  const coverImages =
-    coverIds.length > 0
-      ? await db.query.images.findMany({ where: inArray(images.id, coverIds) })
       : [];
 
   const coverMap = new Map(coverImages.map((img) => [img.id, img]));

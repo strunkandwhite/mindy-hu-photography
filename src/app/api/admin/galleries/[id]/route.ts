@@ -2,7 +2,6 @@ import { validateSession } from "@/lib/auth";
 import { db } from "@/db/client";
 import { galleries, images } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { isCategory } from "@/lib/categories";
 
 export async function PUT(
   request: Request,
@@ -32,7 +31,6 @@ export async function PUT(
     description?: string;
     isPublished?: number;
     coverImageId?: string | null;
-    category?: string | null;
   };
   try {
     body = await request.json();
@@ -61,15 +59,6 @@ export async function PUT(
   if (body.description !== undefined) updates.description = body.description;
   if (body.isPublished !== undefined) updates.isPublished = body.isPublished;
   if (body.coverImageId !== undefined) updates.coverImageId = body.coverImageId;
-  if (body.category !== undefined) {
-    if (body.category === null || body.category === "") {
-      updates.category = null;
-    } else if (isCategory(body.category)) {
-      updates.category = body.category;
-    } else {
-      return Response.json({ error: "Invalid category" }, { status: 400 });
-    }
-  }
 
   await db.update(galleries).set(updates).where(eq(galleries.id, id));
 

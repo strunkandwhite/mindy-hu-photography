@@ -3,7 +3,6 @@ import { db } from "@/db/client";
 import { galleries } from "@/db/schema";
 import { eq, max } from "drizzle-orm";
 import { slugify } from "@/lib/slugify";
-import { isCategory } from "@/lib/categories";
 
 export async function POST(request: Request) {
   const sessionId = await validateSession(request);
@@ -11,7 +10,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { title?: string; description?: string; category?: string | null };
+  let body: { title?: string; description?: string };
   try {
     body = await request.json();
   } catch {
@@ -22,16 +21,6 @@ export async function POST(request: Request) {
   if (!title) {
     return Response.json({ error: "title is required" }, { status: 400 });
   }
-
-  if (body.category && !isCategory(body.category)) {
-    return Response.json({ error: "Invalid category" }, { status: 400 });
-  }
-  const category =
-    body.category === null || body.category === undefined || body.category === ""
-      ? null
-      : isCategory(body.category)
-        ? body.category
-        : null;
 
   // Generate slug and check uniqueness
   let slug = slugify(title);
@@ -60,7 +49,6 @@ export async function POST(request: Request) {
     title,
     slug,
     description: description ?? null,
-    category,
     sortOrder: nextSortOrder,
     isPublished: 0,
     createdAt: now,

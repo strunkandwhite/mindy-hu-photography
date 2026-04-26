@@ -11,18 +11,8 @@ test("/portfolio redirects to homepage", async ({ page }) => {
   await expect(page).toHaveURL(/\/$/);
 });
 
-test("/people loads", async ({ page }) => {
-  const response = await page.goto("/people");
-  expect(response?.status()).toBe(200);
-});
-
-test("/places loads", async ({ page }) => {
-  const response = await page.goto("/places");
-  expect(response?.status()).toBe(200);
-});
-
-test("/prints loads", async ({ page }) => {
-  const response = await page.goto("/prints");
+test("/galleries loads", async ({ page }) => {
+  const response = await page.goto("/galleries");
   expect(response?.status()).toBe(200);
 });
 

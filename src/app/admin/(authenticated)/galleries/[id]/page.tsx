@@ -5,6 +5,7 @@ import { eq, asc } from "drizzle-orm";
 import GalleryForm from "@/components/admin/gallery-form";
 import Image from "next/image";
 import type { Category } from "@/lib/categories";
+import { DeleteGalleryButton } from "@/components/admin/delete-gallery-button";
 
 export default async function EditGalleryPage({
   params,
@@ -76,6 +77,8 @@ export default async function EditGalleryPage({
           </div>
         )}
       </div>
+
+      <DeleteGalleryButton id={gallery.id} title={gallery.title} />
     </div>
   );
 }

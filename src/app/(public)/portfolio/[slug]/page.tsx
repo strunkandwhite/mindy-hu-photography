@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { db } from "@/db/client";
 import { galleries, images } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";

@@ -1,35 +1,55 @@
 export const dynamic = "force-dynamic";
 
+import Image from "next/image";
 import { getSettings } from "@/lib/settings";
 import { ContactForm } from "@/components/public/contact-form";
 
 export default async function ContactPage() {
   const settings = await getSettings();
+  const aboutText = settings?.aboutText?.trim();
+  const aboutImageUrl = settings?.aboutImageUrl ?? null;
+  const contactEmail = settings?.contactEmail?.trim();
 
   return (
-    <div className="min-h-screen">
-      <div className="pt-20 px-6">
-        <div className="text-center mb-10">
-          <h1 className="font-heading text-2xl text-gray-900">Contact</h1>
-          <p className="text-sm text-gray-500 mt-2">
-            Interested in booking a session? I&apos;d love to hear from you.
-          </p>
-        </div>
-        {settings?.contactFormEnabled ? (
-          <ContactForm />
-        ) : (
-          <p className="text-center text-sm text-gray-400">
-            Contact form is currently unavailable.
-            {settings?.contactEmail && (
-              <> Please reach out at{" "}
-                <a href={`mailto:${settings.contactEmail}`} className="text-gray-600 underline">
-                  {settings.contactEmail}
-                </a>.
-              </>
+    <div className="min-h-screen pt-20 px-6">
+      {(aboutText || aboutImageUrl || contactEmail) && (
+        <section className="max-w-5xl mx-auto py-10 grid grid-cols-1 md:grid-cols-[2fr_3fr] gap-8 md:gap-12 items-start">
+          {aboutImageUrl ? (
+            <div className="relative aspect-[3/4] w-full bg-gray-100 overflow-hidden">
+              <Image
+                src={aboutImageUrl}
+                alt="Mindy Hu"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 40vw"
+              />
+            </div>
+          ) : (
+            <div />
+          )}
+          <div className="text-sm text-gray-700 leading-7 space-y-4 md:pt-12">
+            {aboutText && <p className="whitespace-pre-line">{aboutText}</p>}
+            {contactEmail && (
+              <p>
+                For inquiries and rates, please contact{" "}
+                <a href={`mailto:${contactEmail}`} className="underline text-gray-900">
+                  {contactEmail}
+                </a>
+                .
+              </p>
             )}
-          </p>
-        )}
-      </div>
+          </div>
+        </section>
+      )}
+
+      {settings?.contactFormEnabled === 1 && (
+        <section className="max-w-2xl mx-auto py-12 border-t border-gray-100">
+          <h2 className="text-center font-heading text-xl text-gray-900 mb-8">
+            Send a message
+          </h2>
+          <ContactForm />
+        </section>
+      )}
     </div>
   );
 }

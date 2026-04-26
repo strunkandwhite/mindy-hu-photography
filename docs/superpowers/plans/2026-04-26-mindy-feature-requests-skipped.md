@@ -6,4 +6,4 @@ Format: `[Chunk N / Task M / Step K]` followed by what to do.
 
 ## Pending verification
 
-(populated by implementer per chunk)
+- [Chunk 1 / Task 1 / Step 3] Manual Chrome DevTools MCP verification of cache invalidation: in admin, edit a published gallery and uncheck Published, save; navigate to `/portfolio` and confirm the gallery disappears immediately (no reload). Navigate to `/portfolio/<unpublished-slug>` and expect a 404. Re-publish, navigate back to `/portfolio`, and confirm the gallery reappears.

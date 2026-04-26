@@ -5,48 +5,42 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 const links = [
-  { href: "/portfolio", label: "Portfolio" },
+  { href: "/", label: "Overview" },
+  { href: "/people", label: "People" },
+  { href: "/places", label: "Places" },
+  { href: "/prints", label: "Prints" },
   { href: "/contact", label: "Contact" },
 ];
 
 export function Nav() {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
-  const isHome = pathname === "/";
 
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-6 py-5 transition-colors duration-300 ${
-        isHome ? "" : "bg-white/90 backdrop-blur-sm"
-      }`}
-    >
-      <Link
-        href="/"
-        className={`font-heading text-base tracking-wider ${
-          isHome ? "text-white" : "text-gray-800"
-        }`}
-      >
-        MH
+    <nav className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-6 py-5 bg-white/90 backdrop-blur-sm">
+      <Link href="/" className="font-heading text-base tracking-[0.3em] text-gray-900">
+        MINDY HU
       </Link>
-      {/* Desktop nav */}
-      <div className="hidden md:flex gap-6">
-        {links.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className={`text-xs tracking-widest transition-colors ${
-              isHome
-                ? "text-white/80 hover:text-white"
-                : "text-gray-500 hover:text-gray-900"
-            }`}
-          >
-            {link.label.toUpperCase()}
-          </Link>
-        ))}
+
+      <div className="hidden md:flex gap-8">
+        {links.map((link) => {
+          const active = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`text-xs tracking-widest transition-colors ${
+                active ? "text-gray-900 underline underline-offset-8" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              {link.label}
+            </Link>
+          );
+        })}
       </div>
-      {/* Mobile hamburger */}
+
       <button
-        className={`md:hidden ${isHome ? "text-white" : "text-gray-600"}`}
+        className="md:hidden text-gray-700"
         onClick={() => setMenuOpen(!menuOpen)}
         aria-label="Toggle menu"
       >
@@ -58,7 +52,7 @@ export function Nav() {
           )}
         </svg>
       </button>
-      {/* Mobile menu */}
+
       {menuOpen && (
         <div className="absolute top-full left-0 right-0 bg-white/95 backdrop-blur-sm py-4 md:hidden">
           {links.map((link) => (
@@ -68,7 +62,7 @@ export function Nav() {
               onClick={() => setMenuOpen(false)}
               className="block px-6 py-2 text-sm text-gray-600 tracking-wider"
             >
-              {link.label.toUpperCase()}
+              {link.label}
             </Link>
           ))}
         </div>

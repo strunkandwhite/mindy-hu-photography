@@ -19,3 +19,16 @@ Format: `[Chunk N / Task M / Step K]` followed by what to do.
 - [Chunk 6 / Task 18 / Step 2] Visual verification of the redesigned `/contact` page: with about text, about image, and contact email all set in admin, visit `/contact`. Confirm the layout mirrors `~/Downloads/mindy-2.png` — image on the left, bio on the right with the email link beneath the bio. With `contactFormEnabled = 1`, confirm the contact form sits below the about block, separated by a top border. With `contactFormEnabled = 0`, confirm the form section is absent.
 - [Chunk 7 / Task 19 / Step 3] Manual verification of the delete-gallery button: create a throwaway gallery, add an image to it, click the new "Delete gallery" button on `/admin/galleries/<id>`, confirm the prompt. Verify you are redirected to `/admin/galleries`, the gallery is gone, and the image now appears under Unsorted in `/admin/images`.
 - [Chunk 7 / Task 20 / Step 3] Manual verification of the per-image gallery manager: open a gallery with several images at `/admin/galleries/<id>` and exercise each action: (a) click "Set cover" on a non-cover image and confirm the Cover badge moves; (b) click "Remove" on an image, confirm the prompt, and verify it disappears from the grid and reappears under Unsorted at `/admin/images`; (c) use the "Move to…" select to send an image to another gallery, then open the destination and confirm it landed there; (d) after a cover change, visit the matching public category page (`/people` / `/places` / `/prints`) and confirm the cover image is updated.
+- [Chunk 8 / Task 21 / Step 2] `pnpm exec playwright test e2e/smoke.spec.ts` — run the updated Playwright smoke spec against a live dev server. Expected: all assertions pass, including the redirect from `/portfolio` to `/`, 200 responses for `/people` `/places` `/prints`, and the homepage nav showing "MINDY HU".
+- [Chunk 8 / Task 22 / Step 4] Full Chrome DevTools MCP E2E walkthrough — for each scenario navigate via `mcp__chrome-devtools__navigate_page` and capture a screenshot via `mcp__chrome-devtools__take_screenshot`:
+  1. `/` — varied photo grid, randomized; nav with "MINDY HU" wordmark; "Overview" underlined; footer at bottom.
+  2. `/people` — heading "People"; only People-categorized published galleries appear.
+  3. `/places` — heading "Places"; same pattern.
+  4. `/prints` — heading "Prints"; same pattern.
+  5. `/portfolio` — redirects to `/`.
+  6. `/portfolio/<slug>` — gallery detail loads (still works).
+  7. `/contact` — about image left, bio + email right, contact form below if enabled.
+  8. Admin → unpublish a gallery → category page no longer shows it (no reload trick needed).
+  9. Admin → publish a new gallery → it appears immediately on its category page.
+  10. Admin → settings → upload about image, change about text → reflected on `/contact`.
+  11. Admin → gallery edit → delete button works; remove/move/set-cover all work.

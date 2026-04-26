@@ -15,15 +15,12 @@ function isLandscape(img: GridImage) {
   return img.width > img.height;
 }
 
-const MAX_ROWS = 3;
-const IMAGES_PER_ROW = 4;
-
 /**
- * Build rows of 4 images each, alternating H-V-H-V within each row.
- * Picks from horizontal & vertical pools independently per row.
- * Capped at 3 rows.
+ * Build rows of `imagesPerRow` images each, alternating H/V slots within each row
+ * and flipping the alternation between rows. Picks from horizontal & vertical
+ * pools independently; falls back to the other pool when one runs out.
  */
-function buildRows(images: GridImage[]): GridImage[][] {
+function buildRows(images: GridImage[], imagesPerRow: number): GridImage[][] {
   const horizontals = images.filter(isLandscape);
   const verticals = images.filter((img) => !isLandscape(img));
 
@@ -31,36 +28,25 @@ function buildRows(images: GridImage[]): GridImage[][] {
   let hIdx = 0;
   let vIdx = 0;
 
-  for (let row = 0; row < MAX_ROWS; row++) {
+  while (hIdx < horizontals.length || vIdx < verticals.length) {
     const currentRow: GridImage[] = [];
+    const rowIdx = rows.length;
 
-    for (let col = 0; col < IMAGES_PER_ROW; col++) {
-      // Odd rows (0, 2): V at 0,2 — H at 1,3
-      // Even rows (1):   H at 0,2 — V at 1,3
+    for (let col = 0; col < imagesPerRow; col++) {
       const evenCol = col % 2 === 0;
-      const wantH = row % 2 === 0 ? !evenCol : evenCol;
+      const wantH = rowIdx % 2 === 0 ? !evenCol : evenCol;
 
       if (wantH) {
-        if (hIdx < horizontals.length) {
-          currentRow.push(horizontals[hIdx++]);
-        } else if (vIdx < verticals.length) {
-          currentRow.push(verticals[vIdx++]);
-        }
+        if (hIdx < horizontals.length) currentRow.push(horizontals[hIdx++]);
+        else if (vIdx < verticals.length) currentRow.push(verticals[vIdx++]);
       } else {
-        if (vIdx < verticals.length) {
-          currentRow.push(verticals[vIdx++]);
-        } else if (hIdx < horizontals.length) {
-          currentRow.push(horizontals[hIdx++]);
-        }
+        if (vIdx < verticals.length) currentRow.push(verticals[vIdx++]);
+        else if (hIdx < horizontals.length) currentRow.push(horizontals[hIdx++]);
       }
     }
 
-    if (currentRow.length > 0) {
-      rows.push(currentRow);
-    }
-
-    // Stop if we've exhausted all images
-    if (hIdx >= horizontals.length && vIdx >= verticals.length) break;
+    if (currentRow.length === 0) break;
+    rows.push(currentRow);
   }
 
   return rows;
@@ -75,8 +61,8 @@ export function HomepageGrid({ images }: { images: GridImage[] }) {
     );
   }
 
-  const rows = buildRows(images);
-  const allImages = rows.flat();
+  const desktopRows = buildRows(images, 4);
+  const tabletRows = buildRows(images, 2);
 
   function renderTile(img: GridImage) {
     const tile = (
@@ -99,36 +85,43 @@ export function HomepageGrid({ images }: { images: GridImage[] }) {
     );
   }
 
+  function renderRows(rows: GridImage[][]) {
+    return rows.map((row, rowIdx) => (
+      <div key={rowIdx} className="flex gap-3">
+        {row.map((img) => {
+          const ar = img.width / img.height;
+          return (
+            <div
+              key={img.id}
+              className="relative overflow-hidden"
+              style={{ flex: `${ar} 1 0%` }}
+            >
+              {renderTile(img)}
+            </div>
+          );
+        })}
+      </div>
+    ));
+  }
+
   return (
     <div className="pt-24 px-3 max-w-[1400px] mx-auto">
-      {/* Mobile & Tablet: responsive grid */}
-      <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-3">
-        {allImages.map((img) => (
+      {/* Mobile: single-column stack */}
+      <div className="md:hidden flex flex-col gap-3">
+        {images.map((img) => (
           <div key={img.id} className="relative overflow-hidden">
             {renderTile(img)}
           </div>
         ))}
       </div>
 
-      {/* Desktop: justified flex rows */}
-      <div className="hidden lg:flex flex-col gap-3">
-        {rows.map((row, rowIdx) => (
-          <div key={rowIdx} className="flex gap-3">
-            {row.map((img) => {
-              const ar = img.width / img.height;
-              return (
-                <div
-                  key={img.id}
-                  className="relative overflow-hidden"
-                  style={{ flex: `${ar} 1 0%` }}
-                >
-                  {renderTile(img)}
-                </div>
-              );
-            })}
-          </div>
-        ))}
+      {/* Tablet: 2-per-row justified mosaic */}
+      <div className="hidden md:flex lg:hidden flex-col gap-3">
+        {renderRows(tabletRows)}
       </div>
+
+      {/* Desktop: 4-per-row justified mosaic */}
+      <div className="hidden lg:flex flex-col gap-3">{renderRows(desktopRows)}</div>
     </div>
   );
 }

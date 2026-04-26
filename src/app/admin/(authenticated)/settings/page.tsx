@@ -25,6 +25,7 @@ export default async function AdminSettingsPage() {
           siteTitle: settings.siteTitle,
           tagline: settings.tagline,
           aboutText: settings.aboutText,
+          aboutImageUrl: settings.aboutImageUrl,
           contactEmail: settings.contactEmail,
           contactFormEnabled: settings.contactFormEnabled,
           socialLinks: settings.socialLinks,

@@ -2,11 +2,13 @@
 
 import { useState, type FormEvent } from "react";
 import { parseSocialLinks, type SocialLink } from "@/lib/settings";
+import { AboutImageUploader } from "./about-image-uploader";
 
 type SettingsData = {
   siteTitle: string;
   tagline: string;
   aboutText: string;
+  aboutImageUrl: string | null;
   contactEmail: string;
   contactFormEnabled: number;
   socialLinks: string;
@@ -20,6 +22,9 @@ export default function SettingsForm({
   const [siteTitle, setSiteTitle] = useState(settings.siteTitle);
   const [tagline, setTagline] = useState(settings.tagline);
   const [aboutText, setAboutText] = useState(settings.aboutText);
+  const [aboutImageUrl, setAboutImageUrl] = useState<string | null>(
+    settings.aboutImageUrl,
+  );
   const [contactEmail, setContactEmail] = useState(settings.contactEmail);
   const [contactFormEnabled, setContactFormEnabled] = useState(
     settings.contactFormEnabled === 1,
@@ -63,6 +68,7 @@ export default function SettingsForm({
           siteTitle,
           tagline,
           aboutText,
+          aboutImageUrl,
           contactEmail,
           contactFormEnabled: contactFormEnabled ? 1 : 0,
           socialLinks: JSON.stringify(
@@ -143,6 +149,8 @@ export default function SettingsForm({
           className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-900"
         />
       </div>
+
+      <AboutImageUploader initialUrl={aboutImageUrl} onChange={setAboutImageUrl} />
 
       <div>
         <label

@@ -1,14 +1,9 @@
 export const dynamic = "force-dynamic";
 
-import { getHeroImages } from "@/lib/galleries";
-import { HeroSlideshow } from "@/components/public/hero-slideshow";
+import { getHomepageGridImages } from "@/lib/galleries";
+import { HomepageGrid } from "@/components/public/homepage-grid";
 
 export default async function HomePage() {
-  const heroImages = await getHeroImages();
-
-  return (
-    <div>
-      <HeroSlideshow images={heroImages} />
-    </div>
-  );
+  const images = await getHomepageGridImages();
+  return <HomepageGrid images={images} />;
 }

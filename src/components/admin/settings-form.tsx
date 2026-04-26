@@ -134,6 +134,8 @@ export default function SettingsForm({
         />
       </div>
 
+      <AboutImageUploader initialUrl={aboutImageUrl} onChange={setAboutImageUrl} label="Profile Picture" />
+
       <div>
         <label
           htmlFor="aboutText"
@@ -149,8 +151,6 @@ export default function SettingsForm({
           className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-900"
         />
       </div>
-
-      <AboutImageUploader initialUrl={aboutImageUrl} onChange={setAboutImageUrl} />
 
       <div>
         <label

@@ -5,6 +5,7 @@ import { contactSubmissions, siteSettings } from "@/db/schema";
 import { eq, and, gt, count } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { SETTINGS_ID } from "@/lib/settings";
+import { sendContactNotification } from "@/lib/email";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const RATE_LIMIT_MAX = 5;
@@ -58,6 +59,15 @@ export async function submitContactForm(formData: FormData) {
     message: message.trim(),
     isRead: 0,
     createdAt: new Date().toISOString(),
+  });
+
+  // Send notification email (non-blocking, won't fail the form)
+  sendContactNotification({
+    name: name.trim(),
+    email: email.trim(),
+    phone: phone ? phone.trim() : null,
+    sessionType,
+    message: message.trim(),
   });
 
   return { success: true };

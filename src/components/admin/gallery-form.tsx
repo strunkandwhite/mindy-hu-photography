@@ -2,7 +2,13 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { CATEGORIES, CATEGORY_LABELS, type Category } from "@/lib/categories";
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
 type GalleryData = {
   id: string;
@@ -10,7 +16,6 @@ type GalleryData = {
   slug: string;
   description: string | null;
   isPublished: number;
-  category: Category | null;
 };
 
 export default function GalleryForm({
@@ -27,9 +32,15 @@ export default function GalleryForm({
   const [isPublished, setIsPublished] = useState(
     gallery?.isPublished === 1,
   );
-  const [category, setCategory] = useState<Category | "">(gallery?.category ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  function handleTitleChange(value: string) {
+    setTitle(value);
+    if (!isEdit) {
+      setSlug(slugify(value));
+    }
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -39,7 +50,6 @@ export default function GalleryForm({
     const body: Record<string, unknown> = {
       title,
       description: description || null,
-      category: category === "" ? null : category,
     };
 
     if (isEdit) {
@@ -91,26 +101,28 @@ export default function GalleryForm({
           type="text"
           required
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => handleTitleChange(e.target.value)}
           className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-900"
         />
       </div>
 
-      {isEdit && (
-        <div>
-          <label htmlFor="slug" className="block text-sm text-gray-700 mb-1">
-            Slug
-          </label>
-          <input
-            id="slug"
-            type="text"
-            required
-            value={slug}
-            onChange={(e) => setSlug(e.target.value)}
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-900"
-          />
-        </div>
-      )}
+      <div>
+        <label htmlFor="slug" className="block text-sm text-gray-700 mb-1">
+          Slug
+        </label>
+        <input
+          id="slug"
+          type="text"
+          required
+          value={slug}
+          onChange={(e) => setSlug(e.target.value)}
+          className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-gray-50 focus:outline-none focus:ring-1 focus:ring-gray-900"
+        />
+        <p className="text-xs text-gray-400 mt-1">URL: /portfolio/{slug}</p>
+      </div>
+
+
+
 
       <div>
         <label
@@ -128,24 +140,7 @@ export default function GalleryForm({
         />
       </div>
 
-      <div>
-        <label htmlFor="category" className="block text-sm text-gray-700 mb-1">
-          Category
-        </label>
-        <select
-          id="category"
-          value={category}
-          onChange={(e) => setCategory(e.target.value as Category | "")}
-          className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-900"
-        >
-          <option value="">— None —</option>
-          {CATEGORIES.map((c) => (
-            <option key={c} value={c}>
-              {CATEGORY_LABELS[c]}
-            </option>
-          ))}
-        </select>
-      </div>
+
 
       {isEdit && (
         <label className="flex items-center gap-2 text-sm text-gray-700">

@@ -76,6 +76,7 @@ export function ContactForm() {
           <option value="">Select...</option>
           <option value="Portrait">Portrait</option>
           <option value="Family">Family</option>
+          <option value="Engagement">Engagement</option>
           <option value="Other">Other</option>
         </select>
       </div>

@@ -11,9 +11,9 @@ export default async function ContactPage() {
   const contactEmail = settings?.contactEmail?.trim();
 
   return (
-    <div className="min-h-screen pt-20 px-6">
+    <div className="min-h-screen pt-28 px-6">
       {(aboutText || aboutImageUrl || contactEmail) && (
-        <section className="max-w-5xl mx-auto py-10 grid grid-cols-1 md:grid-cols-[2fr_3fr] gap-8 md:gap-12 items-start">
+        <section className="max-w-5xl mx-auto py-10 grid grid-cols-1 md:grid-cols-[2fr_3fr] gap-8 md:gap-12 items-center">
           {aboutImageUrl ? (
             <div className="relative aspect-[3/4] w-full bg-gray-100 overflow-hidden">
               <Image
@@ -27,7 +27,7 @@ export default async function ContactPage() {
           ) : (
             <div />
           )}
-          <div className="text-sm text-gray-700 leading-7 space-y-4 md:pt-12">
+          <div className="text-[24px] text-gray-700 leading-9 space-y-4">
             {aboutText && <p className="whitespace-pre-line">{aboutText}</p>}
             {contactEmail && (
               <p>

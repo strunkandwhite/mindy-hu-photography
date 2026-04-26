@@ -3,7 +3,6 @@ import { db } from "@/db/client";
 import { galleries, images } from "@/db/schema";
 import { eq, asc, ne } from "drizzle-orm";
 import GalleryForm from "@/components/admin/gallery-form";
-import type { Category } from "@/lib/categories";
 import { DeleteGalleryButton } from "@/components/admin/delete-gallery-button";
 import { GalleryImageManager } from "@/components/admin/gallery-image-manager";
 
@@ -38,7 +37,6 @@ export default async function EditGalleryPage({
           slug: gallery.slug,
           description: gallery.description,
           isPublished: gallery.isPublished,
-          category: gallery.category as Category | null,
         }}
       />
 

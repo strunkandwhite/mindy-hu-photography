@@ -2,6 +2,7 @@ import Link from "next/link";
 import { db } from "@/db/client";
 import { galleries } from "@/db/schema";
 import { asc } from "drizzle-orm";
+import { DeleteGalleryButton } from "@/components/admin/delete-gallery-button";
 
 export default async function AdminGalleriesPage() {
   const allGalleries = await db
@@ -36,15 +37,18 @@ export default async function AdminGalleriesPage() {
               >
                 {gallery.title}
               </Link>
-              <span
-                className={`text-xs px-2 py-0.5 rounded-full ${
-                  gallery.isPublished
-                    ? "bg-green-50 text-green-700"
-                    : "bg-gray-100 text-gray-500"
-                }`}
-              >
-                {gallery.isPublished ? "Published" : "Draft"}
-              </span>
+              <div className="flex items-center gap-4">
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-full ${
+                    gallery.isPublished
+                      ? "bg-green-50 text-green-700"
+                      : "bg-gray-100 text-gray-500"
+                  }`}
+                >
+                  {gallery.isPublished ? "Published" : "Draft"}
+                </span>
+                <DeleteGalleryButton id={gallery.id} title={gallery.title} />
+              </div>
             </div>
           ))}
         </div>

@@ -22,7 +22,7 @@ export default async function GalleryPage({ params }: { params: Promise<{ slug: 
 
   return (
     <div className="min-h-screen">
-      <div className="pt-20 px-6">
+      <div className="pt-28 px-6">
         <div className="text-center mb-10">
           <h1 className="font-heading text-2xl text-gray-900">{gallery.title}</h1>
           {gallery.description && (

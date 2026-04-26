@@ -6,9 +6,11 @@ import Image from "next/image";
 export function AboutImageUploader({
   initialUrl,
   onChange,
+  label = "About Image",
 }: {
   initialUrl: string | null;
   onChange: (url: string | null) => void;
+  label?: string;
 }) {
   const [preview, setPreview] = useState<string | null>(initialUrl);
   const [uploading, setUploading] = useState(false);
@@ -45,7 +47,7 @@ export function AboutImageUploader({
 
   return (
     <div>
-      <label className="block text-sm text-gray-700 mb-1">About Image</label>
+      <label className="block text-sm text-gray-700 mb-1">{label}</label>
       {preview && (
         <div className="mb-2 relative w-32 aspect-[3/4] bg-gray-100 overflow-hidden rounded">
           <Image src={preview} alt="About" fill className="object-cover" sizes="128px" />

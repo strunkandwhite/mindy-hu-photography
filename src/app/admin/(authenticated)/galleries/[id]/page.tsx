@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
 import { db } from "@/db/client";
 import { galleries, images } from "@/db/schema";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, ne } from "drizzle-orm";
 import GalleryForm from "@/components/admin/gallery-form";
-import Image from "next/image";
 import type { Category } from "@/lib/categories";
 import { DeleteGalleryButton } from "@/components/admin/delete-gallery-button";
+import { GalleryImageManager } from "@/components/admin/gallery-image-manager";
 
 export default async function EditGalleryPage({
   params,
@@ -14,20 +14,18 @@ export default async function EditGalleryPage({
 }) {
   const { id } = await params;
 
-  const rows = await db
-    .select()
-    .from(galleries)
-    .where(eq(galleries.id, id))
-    .limit(1);
+  const [rows, galleryImages, otherGalleries] = await Promise.all([
+    db.select().from(galleries).where(eq(galleries.id, id)).limit(1),
+    db.select().from(images).where(eq(images.galleryId, id)).orderBy(asc(images.sortOrder)),
+    db
+      .select({ id: galleries.id, title: galleries.title })
+      .from(galleries)
+      .where(ne(galleries.id, id))
+      .orderBy(asc(galleries.sortOrder)),
+  ]);
 
   const gallery = rows[0];
   if (!gallery) notFound();
-
-  const galleryImages = await db
-    .select()
-    .from(images)
-    .where(eq(images.galleryId, id))
-    .orderBy(asc(images.sortOrder));
 
   return (
     <div>
@@ -49,33 +47,17 @@ export default async function EditGalleryPage({
           Images ({galleryImages.length})
         </h2>
 
-        {galleryImages.length === 0 ? (
-          <p className="text-sm text-gray-500">
-            No images in this gallery. Upload images from the Images page and
-            assign them here.
-          </p>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {galleryImages.map((img) => (
-              <div key={img.id} className="relative group">
-                <div className="aspect-square relative rounded overflow-hidden bg-gray-100">
-                  <Image
-                    src={img.thumbnailUrl}
-                    alt={img.altText ?? img.filename}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-                  />
-                </div>
-                {gallery.coverImageId === img.id && (
-                  <span className="absolute top-1 left-1 text-xs bg-gray-900 text-white px-1.5 py-0.5 rounded">
-                    Cover
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+        <GalleryImageManager
+          galleryId={gallery.id}
+          coverImageId={gallery.coverImageId}
+          images={galleryImages.map((img) => ({
+            id: img.id,
+            thumbnailUrl: img.thumbnailUrl,
+            filename: img.filename,
+            altText: img.altText,
+          }))}
+          otherGalleries={otherGalleries}
+        />
       </div>
 
       <DeleteGalleryButton id={gallery.id} title={gallery.title} />

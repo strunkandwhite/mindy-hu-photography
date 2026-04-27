@@ -1,7 +1,4 @@
-interface SocialLink {
-  platform: string;
-  url: string;
-}
+import type { SocialLink } from "@/lib/settings";
 
 interface FooterProps {
   socialLinks: SocialLink[];

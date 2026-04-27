@@ -20,11 +20,10 @@ export function AboutImageUploader({
     setError("");
     setUploading(true);
     try {
-      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
       const presignRes = await fetch("/api/admin/settings/about-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contentType: file.type, ext }),
+        body: JSON.stringify({ contentType: file.type }),
       });
       if (!presignRes.ok) throw new Error("Could not get upload URL");
       const { uploadUrl, cdnUrl } = await presignRes.json();

@@ -27,7 +27,7 @@ export function DeleteGalleryButton({ id, title }: { id: string; title: string }
   }
 
   return (
-    <div className="mt-12 pt-8 border-t border-gray-200">
+    <>
       <button
         onClick={handleDelete}
         disabled={busy}
@@ -36,6 +36,6 @@ export function DeleteGalleryButton({ id, title }: { id: string; title: string }
         {busy ? "Deleting…" : "Delete gallery"}
       </button>
       {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
-    </div>
+    </>
   );
 }

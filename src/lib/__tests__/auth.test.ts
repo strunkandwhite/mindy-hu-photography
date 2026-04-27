@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   createSessionCookie,
   parseSessionCookie,
@@ -66,5 +66,95 @@ describe("getNewExpiresAt", () => {
     // Allow 5 seconds of tolerance
     expect(diff).toBeGreaterThan(sevenDaysMs - 5000);
     expect(diff).toBeLessThanOrEqual(sevenDaysMs);
+  });
+});
+
+describe("validateSession", () => {
+  beforeEach(() => vi.resetModules());
+
+  it("returns null when no cookie header", async () => {
+    const { validateSession } = await import("@/lib/auth");
+    const sid = await validateSession({ headers: { get: () => null } });
+    expect(sid).toBeNull();
+  });
+
+  it("returns null when cookie has no session id", async () => {
+    const { validateSession } = await import("@/lib/auth");
+    const sid = await validateSession({
+      headers: { get: () => "other=value" },
+    });
+    expect(sid).toBeNull();
+  });
+
+  it("returns null and deletes session when expired", async () => {
+    const deleted: string[] = [];
+    vi.doMock("@/db/client", () => ({
+      db: {
+        select: () => ({
+          from: () => ({
+            where: () => ({
+              limit: async () => [
+                {
+                  id: "sid-1",
+                  adminUserId: "u1",
+                  expiresAt: new Date(Date.now() - 1000).toISOString(),
+                  createdAt: new Date().toISOString(),
+                },
+              ],
+            }),
+          }),
+        }),
+        delete: () => ({
+          where: async () => {
+            deleted.push("sid-1");
+          },
+        }),
+        update: () => ({ set: () => ({ where: async () => {} }) }),
+      },
+    }));
+    const { validateSession } = await import("@/lib/auth");
+    const sid = await validateSession({
+      headers: { get: () => "admin_session=sid-1" },
+    });
+    expect(sid).toBeNull();
+    expect(deleted).toContain("sid-1");
+    vi.doUnmock("@/db/client");
+  });
+
+  it("returns sessionId and refreshes expiry on valid session", async () => {
+    let updated = false;
+    vi.doMock("@/db/client", () => ({
+      db: {
+        select: () => ({
+          from: () => ({
+            where: () => ({
+              limit: async () => [
+                {
+                  id: "sid-1",
+                  adminUserId: "u1",
+                  expiresAt: new Date(Date.now() + 60_000).toISOString(),
+                  createdAt: new Date().toISOString(),
+                },
+              ],
+            }),
+          }),
+        }),
+        update: () => ({
+          set: () => ({
+            where: async () => {
+              updated = true;
+            },
+          }),
+        }),
+        delete: () => ({ where: async () => {} }),
+      },
+    }));
+    const { validateSession } = await import("@/lib/auth");
+    const sid = await validateSession({
+      headers: { get: () => "admin_session=sid-1" },
+    });
+    expect(sid).toBe("sid-1");
+    expect(updated).toBe(true);
+    vi.doUnmock("@/db/client");
   });
 });

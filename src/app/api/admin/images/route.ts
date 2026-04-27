@@ -1,7 +1,7 @@
 import { db } from "@/db/client";
 import { images, galleries } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { getCdnUrl, getThumbnailKey, uploadBuffer, deleteS3Object, getObjectBuffer } from "@/lib/s3";
+import { getCdnUrl, getThumbnailKey, uploadBuffer, deleteS3Object, getObjectBufferWithSizeCap } from "@/lib/s3";
 import { processImage } from "@/lib/images";
 import { withAdminAuth, parseJsonBody } from "@/lib/api-helpers";
 import { revalidatePath } from "next/cache";
@@ -23,7 +23,16 @@ export const POST = withAdminAuth(async (request) => {
     );
   }
 
-  const buffer = await getObjectBuffer(s3Key);
+  let buffer: Buffer;
+  try {
+    buffer = await getObjectBufferWithSizeCap(s3Key);
+  } catch {
+    await deleteS3Object(s3Key).catch(() => {});
+    return Response.json(
+      { error: "Uploaded file exceeds size limit" },
+      { status: 413 },
+    );
+  }
   const { width, height, thumbnail } = await processImage(buffer);
   const cdnUrl = getCdnUrl(s3Key);
 

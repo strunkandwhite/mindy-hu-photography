@@ -3,8 +3,11 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
+  HeadObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+
+export const MAX_UPLOAD_BYTES = 30 * 1024 * 1024; // 30 MB
 
 let _client: S3Client | null = null;
 let _bucket: string | null = null;
@@ -95,4 +98,17 @@ export async function getObjectBuffer(s3Key: string): Promise<Buffer> {
     chunks.push(Buffer.from(chunk));
   }
   return Buffer.concat(chunks);
+}
+
+export async function getObjectBufferWithSizeCap(
+  s3Key: string,
+  maxBytes: number = MAX_UPLOAD_BYTES,
+): Promise<Buffer> {
+  const head = await getClient().send(
+    new HeadObjectCommand({ Bucket: getBucket(), Key: s3Key }),
+  );
+  if ((head.ContentLength ?? 0) > maxBytes) {
+    throw new Error(`Uploaded object exceeds ${maxBytes} bytes`);
+  }
+  return getObjectBuffer(s3Key);
 }

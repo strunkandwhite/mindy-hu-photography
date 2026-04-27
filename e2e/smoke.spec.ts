@@ -14,11 +14,12 @@ test("/portfolio redirects to homepage", async ({ page }) => {
 test("/galleries loads", async ({ page }) => {
   const response = await page.goto("/galleries");
   expect(response?.status()).toBe(200);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
 
 test("contact page loads", async ({ page }) => {
   await page.goto("/contact");
-  await expect(page.locator("text=Contact")).toBeVisible();
+  await expect(page.getByRole("heading", { name: /get in touch|contact/i })).toBeVisible();
 });
 
 test("admin redirects to login", async ({ page }) => {

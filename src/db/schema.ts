@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 
 export const adminUser = sqliteTable("admin_user", {
   id: text("id").primaryKey(),
@@ -39,19 +39,25 @@ export const galleries = sqliteTable("galleries", {
   updatedAt: text("updated_at").notNull(),
 });
 
-export const images = sqliteTable("images", {
-  id: text("id").primaryKey(),
-  galleryId: text("gallery_id").references(() => galleries.id),
-  filename: text("filename").notNull(),
-  s3Key: text("s3_key").notNull(),
-  cdnUrl: text("cdn_url").notNull(),
-  thumbnailUrl: text("thumbnail_url").notNull(),
-  width: integer("width").notNull(),
-  height: integer("height").notNull(),
-  altText: text("alt_text"),
-  sortOrder: integer("sort_order").default(0).notNull(),
-  createdAt: text("created_at").notNull(),
-});
+export const images = sqliteTable(
+  "images",
+  {
+    id: text("id").primaryKey(),
+    galleryId: text("gallery_id").references(() => galleries.id),
+    filename: text("filename").notNull(),
+    s3Key: text("s3_key").notNull(),
+    cdnUrl: text("cdn_url").notNull(),
+    thumbnailUrl: text("thumbnail_url").notNull(),
+    width: integer("width").notNull(),
+    height: integer("height").notNull(),
+    altText: text("alt_text"),
+    sortOrder: integer("sort_order").default(0).notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => ({
+    galleryIdIdx: index("images_gallery_id_idx").on(table.galleryId, table.sortOrder),
+  }),
+);
 
 export const contactSubmissions = sqliteTable("contact_submissions", {
   id: text("id").primaryKey(),

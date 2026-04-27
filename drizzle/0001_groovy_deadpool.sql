@@ -1,0 +1,1 @@
+CREATE INDEX `images_gallery_id_idx` ON `images` (`gallery_id`,`sort_order`);

@@ -2,7 +2,7 @@ import { validateSession } from "@/lib/auth";
 import { db } from "@/db/client";
 import { images, galleries } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { getCdnUrl, getThumbnailKey, uploadBuffer, deleteS3Object } from "@/lib/s3";
+import { getCdnUrl, getThumbnailKey, uploadBuffer, deleteS3Object, getObjectBuffer } from "@/lib/s3";
 import { processImage } from "@/lib/images";
 import { revalidatePath } from "next/cache";
 
@@ -32,18 +32,9 @@ export async function POST(request: Request) {
     );
   }
 
-  // Fetch the uploaded original from CDN
-  const cdnUrl = getCdnUrl(s3Key);
-  const response = await fetch(cdnUrl);
-  if (!response.ok) {
-    return Response.json(
-      { error: "Failed to fetch uploaded image from CDN" },
-      { status: 502 },
-    );
-  }
-
-  const buffer = Buffer.from(await response.arrayBuffer());
+  const buffer = await getObjectBuffer(s3Key);
   const { width, height, thumbnail } = await processImage(buffer);
+  const cdnUrl = getCdnUrl(s3Key);
 
   // Upload thumbnail to S3
   const thumbnailKey = getThumbnailKey(imageId);

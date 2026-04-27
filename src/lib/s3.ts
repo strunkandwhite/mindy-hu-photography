@@ -2,6 +2,7 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
+  GetObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -80,4 +81,18 @@ export async function uploadBuffer(
     ContentType: contentType,
   });
   await getClient().send(command);
+}
+
+export async function getObjectBuffer(s3Key: string): Promise<Buffer> {
+  const command = new GetObjectCommand({
+    Bucket: getBucket(),
+    Key: s3Key,
+  });
+  const response = await getClient().send(command);
+  if (!response.Body) throw new Error(`No body for s3://${getBucket()}/${s3Key}`);
+  const chunks: Buffer[] = [];
+  for await (const chunk of response.Body as AsyncIterable<Uint8Array>) {
+    chunks.push(Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks);
 }

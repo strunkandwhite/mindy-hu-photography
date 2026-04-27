@@ -1,19 +1,12 @@
-import { validateSession } from "@/lib/auth";
 import { db } from "@/db/client";
 import { galleries, images } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { slugify } from "@/lib/slugify";
+import { withAdminAuth, parseJsonBody } from "@/lib/api-helpers";
 import { revalidatePath } from "next/cache";
 
-export async function PUT(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const sessionId = await validateSession(request);
-  if (!sessionId) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+export const PUT = withAdminAuth(async (request, { params }) => {
+  if (!params) return Response.json({ error: "Missing id" }, { status: 400 });
   const { id } = await params;
 
   // Check existence first
@@ -27,18 +20,15 @@ export async function PUT(
     return Response.json({ error: "Gallery not found" }, { status: 404 });
   }
 
-  let body: {
+  const parsed = await parseJsonBody<{
     title?: string;
     slug?: string;
     description?: string;
     isPublished?: number;
     coverImageId?: string | null;
-  };
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request body" }, { status: 400 });
-  }
+  }>(request);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.body;
 
   let normalizedSlug: string | undefined;
   if (body.slug !== undefined) {
@@ -83,17 +73,10 @@ export async function PUT(
   revalidatePath("/portfolio/[slug]", "page");
 
   return Response.json(rows[0]);
-}
+});
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const sessionId = await validateSession(request);
-  if (!sessionId) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+export const DELETE = withAdminAuth(async (_request, { params }) => {
+  if (!params) return Response.json({ error: "Missing id" }, { status: 400 });
   const { id } = await params;
 
   // Null out cover image reference
@@ -115,4 +98,4 @@ export async function DELETE(
   revalidatePath("/portfolio/[slug]", "page");
 
   return Response.json({ success: true });
-}
+});

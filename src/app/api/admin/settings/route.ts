@@ -1,16 +1,11 @@
-import { validateSession } from "@/lib/auth";
 import { db } from "@/db/client";
 import { siteSettings } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { withAdminAuth, parseJsonBody } from "@/lib/api-helpers";
 import { revalidatePath } from "next/cache";
 
-export async function PUT(request: Request) {
-  const sessionId = await validateSession(request);
-  if (!sessionId) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  let body: {
+export const PUT = withAdminAuth(async (request) => {
+  const parsed = await parseJsonBody<{
     siteTitle?: string;
     tagline?: string;
     aboutText?: string;
@@ -18,12 +13,9 @@ export async function PUT(request: Request) {
     contactEmail?: string;
     contactFormEnabled?: number;
     socialLinks?: string;
-  };
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request body" }, { status: 400 });
-  }
+  }>(request);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.body;
 
   const updates: Record<string, unknown> = {};
   if (body.siteTitle !== undefined) updates.siteTitle = body.siteTitle;
@@ -63,4 +55,4 @@ export async function PUT(request: Request) {
   revalidatePath("/", "layout");
 
   return Response.json(updated[0]);
-}
+});

@@ -1,24 +1,15 @@
-import { validateSession } from "@/lib/auth";
 import { db } from "@/db/client";
 import { galleries } from "@/db/schema";
 import { eq, max } from "drizzle-orm";
 import { slugify } from "@/lib/slugify";
+import { withAdminAuth, parseJsonBody } from "@/lib/api-helpers";
 import { revalidatePath } from "next/cache";
 
-export async function POST(request: Request) {
-  const sessionId = await validateSession(request);
-  if (!sessionId) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export const POST = withAdminAuth(async (request) => {
+  const parsed = await parseJsonBody<{ title?: string; description?: string }>(request);
+  if (!parsed.ok) return parsed.response;
 
-  let body: { title?: string; description?: string };
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request body" }, { status: 400 });
-  }
-
-  const { title, description } = body;
+  const { title, description } = parsed.body;
   if (!title) {
     return Response.json({ error: "title is required" }, { status: 400 });
   }
@@ -62,4 +53,4 @@ export async function POST(request: Request) {
   revalidatePath("/portfolio/[slug]", "page");
 
   return Response.json(record, { status: 201 });
-}
+});

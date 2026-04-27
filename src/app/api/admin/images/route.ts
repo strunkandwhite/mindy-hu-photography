@@ -1,30 +1,21 @@
-import { validateSession } from "@/lib/auth";
 import { db } from "@/db/client";
 import { images, galleries } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getCdnUrl, getThumbnailKey, uploadBuffer, deleteS3Object, getObjectBuffer } from "@/lib/s3";
 import { processImage } from "@/lib/images";
+import { withAdminAuth, parseJsonBody } from "@/lib/api-helpers";
 import { revalidatePath } from "next/cache";
 
-export async function POST(request: Request) {
-  const sessionId = await validateSession(request);
-  if (!sessionId) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  let body: {
+export const POST = withAdminAuth(async (request) => {
+  const parsed = await parseJsonBody<{
     imageId?: string;
     s3Key?: string;
     ext?: string;
     filename?: string;
-  };
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request body" }, { status: 400 });
-  }
+  }>(request);
+  if (!parsed.ok) return parsed.response;
 
-  const { imageId, s3Key, ext, filename } = body;
+  const { imageId, s3Key, ext, filename } = parsed.body;
   if (!imageId || !s3Key || !ext || !filename) {
     return Response.json(
       { error: "imageId, s3Key, ext, and filename are required" },
@@ -61,22 +52,13 @@ export async function POST(request: Request) {
   revalidatePath("/portfolio/[slug]", "page");
 
   return Response.json(record, { status: 201 });
-}
+});
 
-export async function DELETE(request: Request) {
-  const sessionId = await validateSession(request);
-  if (!sessionId) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export const DELETE = withAdminAuth(async (request) => {
+  const parsed = await parseJsonBody<{ imageId?: string }>(request);
+  if (!parsed.ok) return parsed.response;
 
-  let body: { imageId?: string };
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request body" }, { status: 400 });
-  }
-
-  const { imageId } = body;
+  const { imageId } = parsed.body;
   if (!imageId) {
     return Response.json(
       { error: "imageId is required" },
@@ -116,4 +98,4 @@ export async function DELETE(request: Request) {
   revalidatePath("/portfolio/[slug]", "page");
 
   return Response.json({ success: true });
-}
+});

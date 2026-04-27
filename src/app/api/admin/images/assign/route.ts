@@ -1,23 +1,17 @@
-import { validateSession } from "@/lib/auth";
 import { db } from "@/db/client";
 import { images } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { withAdminAuth, parseJsonBody } from "@/lib/api-helpers";
 import { revalidatePath } from "next/cache";
 
-export async function PUT(request: Request) {
-  const sessionId = await validateSession(request);
-  if (!sessionId) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export const PUT = withAdminAuth(async (request) => {
+  const parsed = await parseJsonBody<{
+    imageIds?: string[];
+    galleryId?: string | null;
+  }>(request);
+  if (!parsed.ok) return parsed.response;
 
-  let body: { imageIds?: string[]; galleryId?: string | null };
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request body" }, { status: 400 });
-  }
-
-  const { imageIds, galleryId } = body;
+  const { imageIds, galleryId } = parsed.body;
   if (!imageIds || !Array.isArray(imageIds)) {
     return Response.json(
       { error: "imageIds array is required" },
@@ -38,4 +32,4 @@ export async function PUT(request: Request) {
   revalidatePath("/portfolio/[slug]", "page");
 
   return Response.json({ success: true });
-}
+});

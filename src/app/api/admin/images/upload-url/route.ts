@@ -1,5 +1,5 @@
-import { validateSession } from "@/lib/auth";
 import { getS3Key, createPresignedUploadUrl } from "@/lib/s3";
+import { withAdminAuth, parseJsonBody } from "@/lib/api-helpers";
 
 const ALLOWED_TYPES = new Set([
   "image/jpeg",
@@ -15,20 +15,11 @@ const EXT_MAP: Record<string, string> = {
   "image/tiff": "tiff",
 };
 
-export async function POST(request: Request) {
-  const sessionId = await validateSession(request);
-  if (!sessionId) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export const POST = withAdminAuth(async (request) => {
+  const parsed = await parseJsonBody<{ filename?: string; contentType?: string }>(request);
+  if (!parsed.ok) return parsed.response;
 
-  let body: { filename?: string; contentType?: string };
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request body" }, { status: 400 });
-  }
-
-  const { filename, contentType } = body;
+  const { filename, contentType } = parsed.body;
   if (!filename || !contentType) {
     return Response.json(
       { error: "filename and contentType are required" },
@@ -49,4 +40,4 @@ export async function POST(request: Request) {
   const uploadUrl = await createPresignedUploadUrl(s3Key, contentType);
 
   return Response.json({ uploadUrl, imageId, s3Key, ext });
-}
+});

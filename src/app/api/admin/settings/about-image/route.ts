@@ -1,20 +1,11 @@
-import { validateSession } from "@/lib/auth";
 import { createPresignedUploadUrl, getCdnUrl } from "@/lib/s3";
+import { withAdminAuth, parseJsonBody } from "@/lib/api-helpers";
 
-export async function POST(request: Request) {
-  const sessionId = await validateSession(request);
-  if (!sessionId) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export const POST = withAdminAuth(async (request) => {
+  const parsed = await parseJsonBody<{ contentType?: string; ext?: string }>(request);
+  if (!parsed.ok) return parsed.response;
 
-  let body: { contentType?: string; ext?: string };
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request body" }, { status: 400 });
-  }
-
-  const { contentType, ext } = body;
+  const { contentType, ext } = parsed.body;
   if (!contentType || !ext) {
     return Response.json(
       { error: "contentType and ext are required" },
@@ -31,4 +22,4 @@ export async function POST(request: Request) {
   const cdnUrl = getCdnUrl(s3Key);
 
   return Response.json({ uploadUrl, cdnUrl });
-}
+});

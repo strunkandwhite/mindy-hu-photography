@@ -1,17 +1,10 @@
-import { validateSession } from "@/lib/auth";
 import { db } from "@/db/client";
 import { contactSubmissions } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { withAdminAuth, parseJsonBody } from "@/lib/api-helpers";
 
-export async function PUT(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const sessionId = await validateSession(request);
-  if (!sessionId) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+export const PUT = withAdminAuth(async (request, { params }) => {
+  if (!params) return Response.json({ error: "Missing id" }, { status: 400 });
   const { id } = await params;
 
   // Check existence first
@@ -25,12 +18,9 @@ export async function PUT(
     return Response.json({ error: "Message not found" }, { status: 404 });
   }
 
-  let body: { isRead?: number };
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request body" }, { status: 400 });
-  }
+  const parsed = await parseJsonBody<{ isRead?: number }>(request);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.body;
 
   if (body.isRead === undefined) {
     return Response.json({ error: "isRead is required" }, { status: 400 });
@@ -46,17 +36,10 @@ export async function PUT(
     .where(eq(contactSubmissions.id, id));
 
   return Response.json({ ...existing[0], isRead: body.isRead });
-}
+});
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const sessionId = await validateSession(request);
-  if (!sessionId) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+export const DELETE = withAdminAuth(async (_request, { params }) => {
+  if (!params) return Response.json({ error: "Missing id" }, { status: 400 });
   const { id } = await params;
 
   await db
@@ -64,4 +47,4 @@ export async function DELETE(
     .where(eq(contactSubmissions.id, id));
 
   return Response.json({ success: true });
-}
+});

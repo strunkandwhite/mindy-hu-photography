@@ -4,6 +4,7 @@ import { images, galleries } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getCdnUrl, getThumbnailKey, uploadBuffer, deleteS3Object } from "@/lib/s3";
 import { processImage } from "@/lib/images";
+import { revalidatePath } from "next/cache";
 
 export async function POST(request: Request) {
   const sessionId = await validateSession(request);
@@ -65,6 +66,9 @@ export async function POST(request: Request) {
 
   await db.insert(images).values(record);
 
+  revalidatePath("/galleries");
+  revalidatePath("/portfolio/[slug]", "page");
+
   return Response.json(record, { status: 201 });
 }
 
@@ -116,6 +120,9 @@ export async function DELETE(request: Request) {
 
   // Delete from DB
   await db.delete(images).where(eq(images.id, imageId));
+
+  revalidatePath("/galleries");
+  revalidatePath("/portfolio/[slug]", "page");
 
   return Response.json({ success: true });
 }

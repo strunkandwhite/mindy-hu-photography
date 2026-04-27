@@ -1,10 +1,16 @@
-export const dynamic = "force-dynamic";
-
 import { db } from "@/db/client";
 import { galleries, images } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { GalleryGrid } from "@/components/public/gallery-grid";
+
+export async function generateStaticParams() {
+  const published = await db
+    .select({ slug: galleries.slug })
+    .from(galleries)
+    .where(eq(galleries.isPublished, 1));
+  return published.map((g) => ({ slug: g.slug }));
+}
 
 export default async function GalleryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

@@ -2,6 +2,7 @@ import { db } from "@/db/client";
 import { images } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { withAdminAuth, parseJsonBody } from "@/lib/api-helpers";
+import { revalidatePath } from "next/cache";
 
 export const PATCH = withAdminAuth(async (request, { params }) => {
   if (!params) return Response.json({ error: "Missing id" }, { status: 400 });
@@ -22,5 +23,8 @@ export const PATCH = withAdminAuth(async (request, { params }) => {
 
   await db.update(images).set({ altText }).where(eq(images.id, id));
   const rows = await db.select().from(images).where(eq(images.id, id)).limit(1);
+
+  revalidatePath("/portfolio/[slug]", "page");
+
   return Response.json(rows[0]);
 });

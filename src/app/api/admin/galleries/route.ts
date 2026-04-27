@@ -3,6 +3,7 @@ import { db } from "@/db/client";
 import { galleries } from "@/db/schema";
 import { eq, max } from "drizzle-orm";
 import { slugify } from "@/lib/slugify";
+import { revalidatePath } from "next/cache";
 
 export async function POST(request: Request) {
   const sessionId = await validateSession(request);
@@ -57,6 +58,9 @@ export async function POST(request: Request) {
 
   await db.insert(galleries).values(record);
 
+  revalidatePath("/galleries");
+  revalidatePath("/portfolio/[slug]", "page");
+
   return Response.json(record, { status: 201 });
 }
 
@@ -91,6 +95,9 @@ export async function PUT(request: Request) {
         .where(eq(galleries.id, item.id))
     )
   );
+
+  revalidatePath("/galleries");
+  revalidatePath("/portfolio/[slug]", "page");
 
   return Response.json({ success: true });
 }

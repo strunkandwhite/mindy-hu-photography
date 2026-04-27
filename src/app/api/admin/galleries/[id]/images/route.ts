@@ -2,6 +2,7 @@ import { validateSession } from "@/lib/auth";
 import { db } from "@/db/client";
 import { images } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 
 export async function PUT(request: Request) {
   const sessionId = await validateSession(request);
@@ -32,6 +33,8 @@ export async function PUT(request: Request) {
         .where(eq(images.id, item.id))
     )
   );
+
+  revalidatePath("/portfolio/[slug]", "page");
 
   return Response.json({ success: true });
 }

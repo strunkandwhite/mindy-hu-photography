@@ -3,6 +3,7 @@ import { db } from "@/db/client";
 import { galleries, images } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { slugify } from "@/lib/slugify";
+import { revalidatePath } from "next/cache";
 
 export async function PUT(
   request: Request,
@@ -78,6 +79,9 @@ export async function PUT(
     .where(eq(galleries.id, id))
     .limit(1);
 
+  revalidatePath("/galleries");
+  revalidatePath("/portfolio/[slug]", "page");
+
   return Response.json(rows[0]);
 }
 
@@ -106,6 +110,9 @@ export async function DELETE(
 
   // Delete the gallery
   await db.delete(galleries).where(eq(galleries.id, id));
+
+  revalidatePath("/galleries");
+  revalidatePath("/portfolio/[slug]", "page");
 
   return Response.json({ success: true });
 }

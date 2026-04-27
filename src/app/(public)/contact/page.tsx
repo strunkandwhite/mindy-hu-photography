@@ -1,5 +1,3 @@
-export const dynamic = "force-dynamic";
-
 import Image from "next/image";
 import { getSettings } from "@/lib/settings";
 import { ContactForm } from "@/components/public/contact-form";

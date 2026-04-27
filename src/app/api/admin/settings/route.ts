@@ -2,6 +2,7 @@ import { validateSession } from "@/lib/auth";
 import { db } from "@/db/client";
 import { siteSettings } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 
 export async function PUT(request: Request) {
   const sessionId = await validateSession(request);
@@ -57,6 +58,9 @@ export async function PUT(request: Request) {
     .from(siteSettings)
     .where(eq(siteSettings.id, rows[0].id))
     .limit(1);
+
+  revalidatePath("/contact");
+  revalidatePath("/", "layout");
 
   return Response.json(updated[0]);
 }

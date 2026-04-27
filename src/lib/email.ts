@@ -1,8 +1,19 @@
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 
-const ses = new SESClient({
-  region: process.env.AWS_REGION || "us-east-1",
-});
+let _client: SESClient | null = null;
+
+function getClient(): SESClient {
+  if (!_client) {
+    _client = new SESClient({
+      region: process.env.AWS_REGION!,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+      },
+    });
+  }
+  return _client;
+}
 
 const NOTIFICATION_EMAIL = "humindy@gmail.com";
 
@@ -20,7 +31,7 @@ export async function sendContactNotification({
   message: string;
 }) {
   try {
-    await ses.send(
+    await getClient().send(
       new SendEmailCommand({
         Source: NOTIFICATION_EMAIL,
         Destination: {

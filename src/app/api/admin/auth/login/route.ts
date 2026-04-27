@@ -4,7 +4,36 @@ import { db } from "@/db/client";
 import { adminUser, sessions } from "@/db/schema";
 import { createSessionCookie, getNewExpiresAt } from "@/lib/auth";
 
+const LOGIN_ATTEMPT_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_ATTEMPT_MAX = 10;
+const attempts = new Map<string, number[]>();
+
+function recordAttempt(ip: string): boolean {
+  const now = Date.now();
+  const windowStart = now - LOGIN_ATTEMPT_WINDOW_MS;
+  const list = (attempts.get(ip) ?? []).filter((t) => t > windowStart);
+  list.push(now);
+  attempts.set(ip, list);
+  return list.length <= LOGIN_ATTEMPT_MAX;
+}
+
+function getIp(request: Request): string {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}
+
 export async function POST(request: Request) {
+  const ip = getIp(request);
+  if (!recordAttempt(ip)) {
+    return Response.json(
+      { error: "Too many login attempts. Try again in 15 minutes." },
+      { status: 429 },
+    );
+  }
+
   let body: { email?: string; password?: string };
   try {
     body = await request.json();
@@ -40,7 +69,7 @@ export async function POST(request: Request) {
   db.delete(sessions)
     .where(lt(sessions.expiresAt, new Date().toISOString()))
     .then(() => {})
-    .catch(() => {});
+    .catch((err) => console.error("Failed to clean expired sessions:", err));
 
   const sessionId = crypto.randomUUID();
   const now = new Date().toISOString();

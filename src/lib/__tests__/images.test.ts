@@ -66,4 +66,19 @@ describe("processImage", () => {
     expect(thumbMeta.height).toBe(300);
     expect(thumbMeta.format).toBe("webp");
   });
+
+  it("returns post-rotation dimensions for EXIF orientation 6 (rotated 90° CW)", async () => {
+    // Generate a 200x100 image with EXIF orientation 6 (visually 100x200 portrait)
+    const buffer = await sharp({
+      create: { width: 200, height: 100, channels: 3, background: "red" },
+    })
+      .withMetadata({ orientation: 6 })
+      .jpeg()
+      .toBuffer();
+
+    const result = await processImage(buffer);
+    // After auto-rotate, the visible image is 100 wide × 200 tall
+    expect(result.width).toBe(100);
+    expect(result.height).toBe(200);
+  });
 });

@@ -2,10 +2,10 @@ import { db } from "@/db/client";
 import { galleries, images } from "@/db/schema";
 import { eq, asc, inArray, sql } from "drizzle-orm";
 
-export type Gallery = typeof galleries.$inferSelect;
-export type Image = typeof images.$inferSelect;
+type Gallery = typeof galleries.$inferSelect;
+type Image = typeof images.$inferSelect;
 
-export type GalleryWithCover = Gallery & { coverImage: Image | null };
+type GalleryWithCover = Gallery & { coverImage: Image | null };
 
 export type PublicGalleryImage = {
   id: string;
@@ -17,7 +17,7 @@ export type PublicGalleryImage = {
   filename: string;
 };
 
-export type HomepageGridImage = Omit<PublicGalleryImage, "cdnUrl"> & {
+type HomepageGridImage = Omit<PublicGalleryImage, "cdnUrl"> & {
   gallerySlug: string | null;
 };
 

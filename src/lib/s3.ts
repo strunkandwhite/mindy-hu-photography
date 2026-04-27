@@ -7,7 +7,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-export const MAX_UPLOAD_BYTES = 30 * 1024 * 1024; // 30 MB
+const MAX_UPLOAD_BYTES = 30 * 1024 * 1024; // 30 MB
 
 let _client: S3Client | null = null;
 let _bucket: string | null = null;
@@ -86,7 +86,7 @@ export async function uploadBuffer(
   await getClient().send(command);
 }
 
-export async function getObjectBuffer(s3Key: string): Promise<Buffer> {
+async function getObjectBuffer(s3Key: string): Promise<Buffer> {
   const command = new GetObjectCommand({
     Bucket: getBucket(),
     Key: s3Key,

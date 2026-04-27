@@ -1,6 +1,6 @@
 import { validateSession } from "@/lib/auth";
 
-export type ParseResult<T> =
+type ParseResult<T> =
   | { ok: true; body: T }
   | { ok: false; response: Response };
 

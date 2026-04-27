@@ -2,7 +2,38 @@ import { db } from "@/db/client";
 import { galleries, images } from "@/db/schema";
 import { eq, asc, inArray } from "drizzle-orm";
 
-export async function getPublishedGalleriesWithCovers() {
+export type Gallery = typeof galleries.$inferSelect;
+export type Image = typeof images.$inferSelect;
+
+export type GalleryWithCover = Gallery & { coverImage: Image | null };
+
+export type PublicGalleryImage = {
+  id: string;
+  thumbnailUrl: string;
+  cdnUrl: string;
+  width: number;
+  height: number;
+  altText: string | null;
+  filename: string;
+};
+
+export type HomepageGridImage = Omit<PublicGalleryImage, "cdnUrl"> & {
+  gallerySlug: string | null;
+};
+
+function toPublicImage(img: Image): PublicGalleryImage {
+  return {
+    id: img.id,
+    thumbnailUrl: img.thumbnailUrl,
+    cdnUrl: img.cdnUrl,
+    width: img.width,
+    height: img.height,
+    altText: img.altText,
+    filename: img.filename,
+  };
+}
+
+export async function getPublishedGalleriesWithCovers(): Promise<GalleryWithCover[]> {
   const publishedGalleries = await db.query.galleries.findMany({
     where: eq(galleries.isPublished, 1),
     orderBy: asc(galleries.sortOrder),
@@ -29,7 +60,7 @@ export async function getPublishedGalleriesWithCovers() {
 
 const HOMEPAGE_GRID_MAX = 12;
 
-export async function getHomepageGridImages() {
+export async function getHomepageGridImages(): Promise<HomepageGridImage[]> {
   const publishedGalleries = await db.query.galleries.findMany({
     where: eq(galleries.isPublished, 1),
   });
@@ -57,4 +88,20 @@ export async function getHomepageGridImages() {
     filename: img.filename,
     gallerySlug: img.galleryId ? galleryMap.get(img.galleryId) ?? null : null,
   }));
+}
+
+export async function getPublishedGalleryBySlugWithImages(
+  slug: string,
+): Promise<{ gallery: Gallery; images: PublicGalleryImage[] } | null> {
+  const gallery = await db.query.galleries.findFirst({
+    where: eq(galleries.slug, slug),
+  });
+  if (!gallery || !gallery.isPublished) return null;
+
+  const galleryImages = await db.query.images.findMany({
+    where: eq(images.galleryId, gallery.id),
+    orderBy: asc(images.sortOrder),
+  });
+
+  return { gallery, images: galleryImages.map(toPublicImage) };
 }

@@ -1,6 +1,6 @@
 import { db } from "@/db/client";
 import { galleries, images } from "@/db/schema";
-import { eq, asc, inArray } from "drizzle-orm";
+import { eq, asc, inArray, sql } from "drizzle-orm";
 
 export type Gallery = typeof galleries.$inferSelect;
 export type Image = typeof images.$inferSelect;
@@ -59,27 +59,32 @@ export async function getPublishedGalleriesWithCovers(): Promise<GalleryWithCove
 }
 
 const HOMEPAGE_GRID_MAX = 12;
+const HOMEPAGE_SAMPLE_SIZE = 60; // shuffle pool size
 
 export async function getHomepageGridImages(): Promise<HomepageGridImage[]> {
   const publishedGalleries = await db.query.galleries.findMany({
     where: eq(galleries.isPublished, 1),
   });
+  if (publishedGalleries.length === 0) return [];
 
   const galleryMap = new Map(publishedGalleries.map((g) => [g.id, g.slug]));
   const galleryIds = publishedGalleries.map((g) => g.id);
-  if (galleryIds.length === 0) return [];
 
-  const allImages = await db.query.images.findMany({
-    where: inArray(images.galleryId, galleryIds),
-  });
+  // Sample at the DB layer instead of fetching every image.
+  const sampled = await db
+    .select()
+    .from(images)
+    .where(inArray(images.galleryId, galleryIds))
+    .orderBy(sql`RANDOM()`)
+    .limit(HOMEPAGE_SAMPLE_SIZE);
 
-  // Shuffle (Fisher–Yates) so each visit re-orders.
-  for (let i = allImages.length - 1; i > 0; i--) {
+  // Shuffle the smaller sample (cheap) then slice.
+  for (let i = sampled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [allImages[i], allImages[j]] = [allImages[j], allImages[i]];
+    [sampled[i], sampled[j]] = [sampled[j], sampled[i]];
   }
 
-  return allImages.slice(0, HOMEPAGE_GRID_MAX).map((img) => ({
+  return sampled.slice(0, HOMEPAGE_GRID_MAX).map((img) => ({
     id: img.id,
     thumbnailUrl: img.thumbnailUrl,
     width: img.width,

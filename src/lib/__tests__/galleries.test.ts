@@ -1,25 +1,32 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { findManyGalleries, findManyImages } = vi.hoisted(() => ({
+const { findManyGalleries, selectImages } = vi.hoisted(() => ({
   findManyGalleries: vi.fn(),
-  findManyImages: vi.fn(),
+  selectImages: vi.fn(),
 }));
 
-vi.mock("@/db/client", () => ({
-  db: {
-    query: {
-      galleries: { findMany: findManyGalleries },
-      images: { findMany: findManyImages },
+vi.mock("@/db/client", () => {
+  const limit = vi.fn(() => selectImages());
+  const orderBy = vi.fn(() => ({ limit }));
+  const where = vi.fn(() => ({ orderBy }));
+  const from = vi.fn(() => ({ where }));
+  const select = vi.fn(() => ({ from }));
+  return {
+    db: {
+      query: {
+        galleries: { findMany: findManyGalleries },
+      },
+      select,
     },
-  },
-}));
+  };
+});
 
 import { getHomepageGridImages } from "../galleries";
 
 describe("getHomepageGridImages", () => {
   beforeEach(() => {
     findManyGalleries.mockReset();
-    findManyImages.mockReset();
+    selectImages.mockReset();
   });
 
   it("returns empty array when no published galleries exist", async () => {
@@ -41,7 +48,7 @@ describe("getHomepageGridImages", () => {
       altText: null,
       filename: `i${i}.jpg`,
     }));
-    findManyImages.mockResolvedValue(fakeImages);
+    selectImages.mockResolvedValue(fakeImages);
 
     const result = await getHomepageGridImages();
     expect(result).toHaveLength(12);

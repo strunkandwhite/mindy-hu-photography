@@ -12,11 +12,22 @@ export type SocialLink = {
 
 export function parseSocialLinks(raw: string | null | undefined): SocialLink[] {
   if (!raw) return [];
+  let parsed: unknown;
   try {
-    return JSON.parse(raw);
+    parsed = JSON.parse(raw);
   } catch {
     return [];
   }
+  if (!Array.isArray(parsed)) return [];
+  return parsed.filter(
+    (item): item is SocialLink =>
+      typeof item === "object" &&
+      item !== null &&
+      typeof (item as { platform?: unknown }).platform === "string" &&
+      typeof (item as { url?: unknown }).url === "string" &&
+      (item as { platform: string }).platform.length > 0 &&
+      (item as { url: string }).url.length > 0,
+  );
 }
 
 export const getSettings = cache(async () => {

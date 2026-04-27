@@ -29,4 +29,29 @@ describe("parseSocialLinks", () => {
     expect(parseSocialLinks(undefined)).toEqual([]);
     expect(parseSocialLinks(null)).toEqual([]);
   });
+
+  it("returns [] for non-array JSON like a number", () => {
+    expect(parseSocialLinks("42")).toEqual([]);
+  });
+
+  it("returns [] for a JSON string scalar", () => {
+    expect(parseSocialLinks('"hello"')).toEqual([]);
+  });
+
+  it("returns [] for null literal", () => {
+    expect(parseSocialLinks("null")).toEqual([]);
+  });
+
+  it("filters out items missing platform or url", () => {
+    expect(
+      parseSocialLinks(
+        JSON.stringify([
+          { platform: "instagram", url: "https://x" },
+          { platform: "twitter" }, // missing url
+          { url: "https://y" }, // missing platform
+          "string", // not an object
+        ]),
+      ),
+    ).toEqual([{ platform: "instagram", url: "https://x" }]);
+  });
 });

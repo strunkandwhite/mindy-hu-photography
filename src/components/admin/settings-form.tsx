@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { parseSocialLinks, type SocialLink } from "@/lib/settings";
+import type { SocialLink } from "@/lib/settings";
 import { AboutImageUploader } from "./about-image-uploader";
 
 type SettingsData = {
@@ -11,13 +11,14 @@ type SettingsData = {
   aboutImageUrl: string | null;
   contactEmail: string;
   contactFormEnabled: number;
-  socialLinks: string;
 };
 
 export default function SettingsForm({
   settings,
+  socialLinks: initialSocialLinks,
 }: {
   settings: SettingsData;
+  socialLinks: SocialLink[];
 }) {
   const [siteTitle, setSiteTitle] = useState(settings.siteTitle);
   const [tagline, setTagline] = useState(settings.tagline);
@@ -30,7 +31,7 @@ export default function SettingsForm({
     settings.contactFormEnabled === 1,
   );
 
-  const [socialLinks, setSocialLinks] = useState<SocialLink[]>(parseSocialLinks(settings.socialLinks));
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>(initialSocialLinks);
 
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");

@@ -49,11 +49,14 @@ export default function ImageGrid({
           galleryId: assignGalleryId,
         }),
       });
-      if (res.ok) {
-        setSelected(new Set());
-        setAssignGalleryId("");
-        router.refresh();
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error ?? "Operation failed.");
+        return;
       }
+      setSelected(new Set());
+      setAssignGalleryId("");
+      router.refresh();
     } finally {
       setBusy(false);
     }
@@ -68,14 +71,17 @@ export default function ImageGrid({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ imageId }),
       });
-      if (res.ok) {
-        setSelected((prev) => {
-          const next = new Set(prev);
-          next.delete(imageId);
-          return next;
-        });
-        router.refresh();
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error ?? "Operation failed.");
+        return;
       }
+      setSelected((prev) => {
+        const next = new Set(prev);
+        next.delete(imageId);
+        return next;
+      });
+      router.refresh();
     } finally {
       setBusy(false);
     }

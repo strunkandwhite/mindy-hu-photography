@@ -20,7 +20,7 @@ export const PUT = withAdminAuth(async (request) => {
   const updates: Record<string, unknown> = {};
   if (body.siteTitle !== undefined) updates.siteTitle = body.siteTitle;
   if (body.tagline !== undefined) updates.tagline = body.tagline;
-  if (body.aboutText !== undefined) updates.aboutText = body.aboutText;
+  if (body.aboutText !== undefined) updates.aboutText = body.aboutText.trim();
   if (body.aboutImageUrl !== undefined) updates.aboutImageUrl = body.aboutImageUrl;
   if (body.contactEmail !== undefined) updates.contactEmail = body.contactEmail;
   if (body.contactFormEnabled !== undefined)

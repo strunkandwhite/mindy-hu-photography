@@ -25,11 +25,16 @@ export default function MessageList({
   async function toggleRead(msg: Message) {
     setBusy(msg.id);
     try {
-      await fetch(`/api/admin/messages/${msg.id}`, {
+      const res = await fetch(`/api/admin/messages/${msg.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isRead: msg.isRead ? 0 : 1 }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error ?? "Operation failed.");
+        return;
+      }
       router.refresh();
     } finally {
       setBusy(null);
@@ -40,7 +45,12 @@ export default function MessageList({
     if (!window.confirm("Delete this message?")) return;
     setBusy(id);
     try {
-      await fetch(`/api/admin/messages/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/messages/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error ?? "Operation failed.");
+        return;
+      }
       router.refresh();
     } finally {
       setBusy(null);

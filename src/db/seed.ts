@@ -1,5 +1,6 @@
 import { db } from "./client";
 import { adminUser, siteSettings } from "./schema";
+import { SETTINGS_ID } from "@/lib/settings";
 import bcrypt from "bcryptjs";
 import crypto from "node:crypto";
 
@@ -25,7 +26,7 @@ async function seed() {
   console.log(`Admin user created: ${email}`);
 
   await db.insert(siteSettings).values({
-    id: "default",
+    id: SETTINGS_ID,
     siteTitle: "Mindy Hu Photography",
     tagline: "",
     aboutText: "",

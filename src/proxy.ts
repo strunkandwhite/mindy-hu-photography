@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { parseSessionCookie } from "@/lib/auth";
 
+// Cookie presence only — full session validation (DB lookup + expiry refresh)
+// happens in admin route handlers via validateSession from @/lib/auth.
+// This proxy is the first line of defense; the per-route check is the second.
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 

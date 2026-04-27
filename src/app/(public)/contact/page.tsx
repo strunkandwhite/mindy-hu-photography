@@ -4,7 +4,7 @@ import { ContactForm } from "@/components/public/contact-form";
 
 export default async function ContactPage() {
   const settings = await getSettings();
-  const aboutText = settings?.aboutText?.trim();
+  const aboutText = settings?.aboutText;
   const aboutImageUrl = settings?.aboutImageUrl ?? null;
   const contactEmail = settings?.contactEmail?.trim();
 

@@ -16,7 +16,10 @@ function getDb(): LibSQLDatabase<typeof schema> {
   return _db;
 }
 
-// Convenience export — triggers lazy init on first property access
+// db is exported as a Proxy that lazy-initializes on first property access.
+// This is required so that build-time imports (e.g. type-only or schema gen)
+// don't crash when TURSO_DATABASE_URL is unset. Do NOT replace with a
+// top-level `await initDb()` — it will break `next build`.
 export const db = new Proxy({} as LibSQLDatabase<typeof schema>, {
   get(_target, prop, receiver) {
     const instance = getDb();

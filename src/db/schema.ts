@@ -32,7 +32,6 @@ export const galleries = sqliteTable("galleries", {
   title: text("title").notNull(),
   slug: text("slug").unique().notNull(),
   description: text("description"),
-  category: text("category"),
   coverImageId: text("cover_image_id"),
   sortOrder: integer("sort_order").default(0).notNull(),
   isPublished: integer("is_published").default(0).notNull(),

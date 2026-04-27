@@ -2,17 +2,10 @@
 
 import { useEffect, useCallback } from "react";
 import Image from "next/image";
-
-interface LightboxImage {
-  cdnUrl: string;
-  width: number;
-  height: number;
-  altText: string | null;
-  filename: string;
-}
+import type { PublicGalleryImage } from "@/lib/galleries";
 
 interface LightboxProps {
-  images: LightboxImage[];
+  images: PublicGalleryImage[];
   currentIndex: number;
   onClose: () => void;
   onNavigate: (index: number) => void;

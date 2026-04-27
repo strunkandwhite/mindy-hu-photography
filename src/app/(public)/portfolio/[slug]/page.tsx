@@ -1,8 +1,9 @@
 import { db } from "@/db/client";
-import { galleries, images } from "@/db/schema";
-import { eq, asc } from "drizzle-orm";
+import { galleries } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { GalleryGrid } from "@/components/public/gallery-grid";
+import { getPublishedGalleryBySlugWithImages } from "@/lib/galleries";
 
 export async function generateStaticParams() {
   const published = await db
@@ -14,17 +15,9 @@ export async function generateStaticParams() {
 
 export default async function GalleryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-
-  const gallery = await db.query.galleries.findFirst({
-    where: eq(galleries.slug, slug),
-  });
-
-  if (!gallery || !gallery.isPublished) notFound();
-
-  const galleryImages = await db.query.images.findMany({
-    where: eq(images.galleryId, gallery.id),
-    orderBy: asc(images.sortOrder),
-  });
+  const result = await getPublishedGalleryBySlugWithImages(slug);
+  if (!result) notFound();
+  const { gallery, images: galleryImages } = result;
 
   return (
     <div className="min-h-screen">

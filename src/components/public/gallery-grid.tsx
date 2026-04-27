@@ -3,19 +3,10 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Lightbox } from "./lightbox";
-
-interface GalleryImage {
-  id: string;
-  cdnUrl: string;
-  thumbnailUrl: string;
-  width: number;
-  height: number;
-  altText: string | null;
-  filename: string;
-}
+import type { PublicGalleryImage } from "@/lib/galleries";
 
 interface GalleryGridProps {
-  images: GalleryImage[];
+  images: PublicGalleryImage[];
 }
 
 export function GalleryGrid({ images }: GalleryGridProps) {

@@ -7,9 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "lint:knip": "knip",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:seed": "tsx src/db/seed.ts"
+    "db:seed": "tsx src/db/seed.ts",
+    "prepare": "husky"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1016.0",
@@ -39,6 +41,8 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
+    "husky": "^9.1.7",
+    "knip": "^6.7.0",
     "postcss": "^8.5.8",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",

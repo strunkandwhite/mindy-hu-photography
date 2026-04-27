@@ -1,0 +1,4 @@
+pnpm exec tsc --noEmit
+pnpm lint
+pnpm test
+pnpm lint:knip

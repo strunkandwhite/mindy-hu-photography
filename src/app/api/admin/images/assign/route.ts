@@ -18,15 +18,14 @@ export const PUT = withAdminAuth(async (request) => {
       { status: 400 },
     );
   }
+  if (imageIds.length === 0) {
+    return Response.json({ success: true });
+  }
 
-  await Promise.all(
-    imageIds.map((imageId) =>
-      db
-        .update(images)
-        .set({ galleryId: galleryId ?? null })
-        .where(eq(images.id, imageId))
-    )
+  const stmts = imageIds.map((id) =>
+    db.update(images).set({ galleryId: galleryId ?? null }).where(eq(images.id, id)),
   );
+  await db.batch(stmts as [(typeof stmts)[number], ...(typeof stmts)[number][]]);
 
   revalidatePath("/galleries");
   revalidatePath("/portfolio/[slug]", "page");

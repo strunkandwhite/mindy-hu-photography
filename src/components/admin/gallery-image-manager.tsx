@@ -26,6 +26,20 @@ export function GalleryImageManager({
 }) {
   const router = useRouter();
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [editingAltId, setEditingAltId] = useState<string | null>(null);
+  const [altDraft, setAltDraft] = useState("");
+
+  async function saveAlt(imageId: string) {
+    setBusyId(imageId);
+    await fetch(`/api/admin/images/${imageId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ altText: altDraft }),
+    });
+    setEditingAltId(null);
+    setBusyId(null);
+    router.refresh();
+  }
 
   async function setCover(imageId: string) {
     setBusyId(imageId);
@@ -116,6 +130,32 @@ export function GalleryImageManager({
             >
               Remove
             </button>
+            {editingAltId === img.id ? (
+              <input
+                autoFocus
+                type="text"
+                value={altDraft}
+                onChange={(e) => setAltDraft(e.target.value)}
+                onBlur={() => saveAlt(img.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") saveAlt(img.id);
+                  if (e.key === "Escape") setEditingAltId(null);
+                }}
+                className="text-xs border border-gray-300 rounded px-1 py-0.5 w-full"
+                placeholder="Alt text"
+              />
+            ) : (
+              <button
+                onClick={() => {
+                  setAltDraft(img.altText ?? "");
+                  setEditingAltId(img.id);
+                }}
+                className="text-gray-600 hover:text-gray-900 truncate text-left"
+                title={img.altText ?? "No alt text"}
+              >
+                {img.altText ? "✎ alt" : "+ alt"}
+              </button>
+            )}
             {otherGalleries.length > 0 && (
               <select
                 onChange={(e) => {

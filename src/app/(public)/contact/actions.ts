@@ -11,6 +11,14 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 
+const ALLOWED_SESSION_TYPES = new Set([
+  // Mirror the <option> values in src/components/public/contact-form.tsx
+  "Portrait",
+  "Family",
+  "Engagement",
+  "Other",
+]);
+
 export async function submitContactForm(formData: FormData) {
   const settings = await db.query.siteSettings.findFirst({
     where: eq(siteSettings.id, SETTINGS_ID),
@@ -34,6 +42,11 @@ export async function submitContactForm(formData: FormData) {
     return { error: "Please enter a valid email address." };
   }
 
+  const normalizedEmail = email.trim().toLowerCase();
+  if (!ALLOWED_SESSION_TYPES.has(sessionType)) {
+    return { error: "Please select a valid session type." };
+  }
+
   // Rate limiting: max 5 submissions per email per hour
   const oneHourAgo = new Date(Date.now() - RATE_LIMIT_WINDOW_MS).toISOString();
   const [result] = await db
@@ -41,7 +54,7 @@ export async function submitContactForm(formData: FormData) {
     .from(contactSubmissions)
     .where(
       and(
-        eq(contactSubmissions.email, email.trim()),
+        eq(contactSubmissions.email, normalizedEmail),
         gt(contactSubmissions.createdAt, oneHourAgo)
       )
     );
@@ -53,7 +66,7 @@ export async function submitContactForm(formData: FormData) {
   await db.insert(contactSubmissions).values({
     id: randomUUID(),
     name: name.trim(),
-    email: email.trim(),
+    email: normalizedEmail,
     phone: phone ? phone.trim() : null,
     sessionType,
     message: message.trim(),
@@ -64,7 +77,7 @@ export async function submitContactForm(formData: FormData) {
   // Send notification email (non-blocking, won't fail the form)
   sendContactNotification({
     name: name.trim(),
-    email: email.trim(),
+    email: normalizedEmail,
     phone: phone ? phone.trim() : null,
     sessionType,
     message: message.trim(),

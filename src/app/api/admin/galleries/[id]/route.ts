@@ -2,6 +2,7 @@ import { validateSession } from "@/lib/auth";
 import { db } from "@/db/client";
 import { galleries, images } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { slugify } from "@/lib/slugify";
 
 export async function PUT(
   request: Request,
@@ -38,24 +39,33 @@ export async function PUT(
     return Response.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  // Slug uniqueness check
-  if (body.slug !== undefined && body.slug !== existing[0].slug) {
-    const slugConflict = await db
-      .select({ id: galleries.id })
-      .from(galleries)
-      .where(eq(galleries.slug, body.slug))
-      .limit(1);
-    if (slugConflict.length > 0) {
+  let normalizedSlug: string | undefined;
+  if (body.slug !== undefined) {
+    normalizedSlug = slugify(body.slug);
+    if (!normalizedSlug) {
       return Response.json(
-        { error: "A gallery with this slug already exists" },
-        { status: 409 },
+        { error: "Slug cannot be empty after normalization" },
+        { status: 400 },
       );
+    }
+    if (normalizedSlug !== existing[0].slug) {
+      const slugConflict = await db
+        .select({ id: galleries.id })
+        .from(galleries)
+        .where(eq(galleries.slug, normalizedSlug))
+        .limit(1);
+      if (slugConflict.length > 0) {
+        return Response.json(
+          { error: "A gallery with this slug already exists" },
+          { status: 409 },
+        );
+      }
     }
   }
 
   const updates: Record<string, unknown> = { updatedAt: new Date().toISOString() };
   if (body.title !== undefined) updates.title = body.title;
-  if (body.slug !== undefined) updates.slug = body.slug;
+  if (normalizedSlug !== undefined) updates.slug = normalizedSlug;
   if (body.description !== undefined) updates.description = body.description;
   if (body.isPublished !== undefined) updates.isPublished = body.isPublished;
   if (body.coverImageId !== undefined) updates.coverImageId = body.coverImageId;

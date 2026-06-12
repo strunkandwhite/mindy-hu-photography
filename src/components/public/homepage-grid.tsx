@@ -1,15 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-
-type GridImage = {
-  id: string;
-  thumbnailUrl: string;
-  width: number;
-  height: number;
-  altText: string | null;
-  filename: string;
-  gallerySlug: string | null;
-};
+import type { HomepageGridImage as GridImage } from "@/lib/galleries";
 
 function isLandscape(img: GridImage) {
   return img.width > img.height;
@@ -64,24 +55,19 @@ export function HomepageGrid({ images }: { images: GridImage[] }) {
   const desktopRows = buildRows(images, 4);
   const tabletRows = buildRows(images, 2);
 
-  function renderTile(img: GridImage) {
-    const tile = (
-      <Image
-        src={img.thumbnailUrl}
-        alt={img.altText || img.filename}
-        width={img.width}
-        height={img.height}
-        className="w-full h-auto transition-opacity duration-300 hover:opacity-90"
-        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-      />
-    );
-
-    return img.gallerySlug ? (
+  function renderTile(img: GridImage, eager: boolean) {
+    return (
       <Link href={`/portfolio/${img.gallerySlug}`} className="block">
-        {tile}
+        <Image
+          src={img.thumbnailUrl}
+          alt={img.altText || img.filename}
+          width={img.width}
+          height={img.height}
+          className="w-full h-auto transition-opacity duration-300 hover:opacity-90"
+          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          fetchPriority={eager ? "high" : undefined}
+        />
       </Link>
-    ) : (
-      tile
     );
   }
 
@@ -96,7 +82,7 @@ export function HomepageGrid({ images }: { images: GridImage[] }) {
               className="relative overflow-hidden"
               style={{ flex: `${ar} 1 0%` }}
             >
-              {renderTile(img)}
+              {renderTile(img, rowIdx === 0)}
             </div>
           );
         })}
@@ -108,9 +94,9 @@ export function HomepageGrid({ images }: { images: GridImage[] }) {
     <div className="pt-24 px-3 max-w-[1400px] mx-auto">
       {/* Mobile: single-column stack */}
       <div className="md:hidden flex flex-col gap-3">
-        {images.map((img) => (
+        {images.map((img, idx) => (
           <div key={img.id} className="relative overflow-hidden">
-            {renderTile(img)}
+            {renderTile(img, idx === 0)}
           </div>
         ))}
       </div>

@@ -1,21 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { findManyGalleries, findManyImages, selectImages } = vi.hoisted(() => ({
+const { findManyGalleries, findFirstGallery, findManyImages, selectImages, limitSpy } = vi.hoisted(() => ({
   findManyGalleries: vi.fn(),
+  findFirstGallery: vi.fn(),
   findManyImages: vi.fn(),
   selectImages: vi.fn(),
+  limitSpy: vi.fn(),
 }));
 
 vi.mock("@/db/client", () => {
-  const limit = vi.fn(() => selectImages());
+  const limit = limitSpy.mockImplementation(() => selectImages());
   const orderBy = vi.fn(() => ({ limit }));
   const where = vi.fn(() => ({ orderBy }));
-  const from = vi.fn(() => ({ where }));
+  const innerJoin = vi.fn(() => ({ where }));
+  const from = vi.fn(() => ({ innerJoin, where }));
   const select = vi.fn(() => ({ from }));
   return {
     db: {
       query: {
-        galleries: { findMany: findManyGalleries },
+        galleries: { findMany: findManyGalleries, findFirst: findFirstGallery },
         images: { findMany: findManyImages },
       },
       select,
@@ -26,72 +29,86 @@ vi.mock("@/db/client", () => {
 import {
   getHomepageGridImages,
   getPublishedGalleriesWithCovers,
+  getPublishedGalleryBySlugWithImages,
 } from "../galleries";
 
 describe("getHomepageGridImages", () => {
   beforeEach(() => {
-    findManyGalleries.mockReset();
-    findManyImages.mockReset();
     selectImages.mockReset();
+    limitSpy.mockClear();
   });
 
-  it("returns empty array when no published galleries exist", async () => {
-    findManyGalleries.mockResolvedValue([]);
-    const result = await getHomepageGridImages();
-    expect(result).toEqual([]);
+  it("returns [] when the join finds no published-gallery images", async () => {
+    selectImages.mockResolvedValue([]);
+    expect(await getHomepageGridImages()).toEqual([]);
   });
 
-  it("caps results at 12 and attaches gallerySlug for each image", async () => {
-    findManyGalleries.mockResolvedValue([
-      { id: "g1", slug: "places-trip", isPublished: 1 },
-    ]);
-    const fakeImages = Array.from({ length: 20 }, (_, i) => ({
-      id: `i${i}`,
-      galleryId: "g1",
-      thumbnailUrl: `https://cdn/i${i}.webp`,
-      width: 800,
-      height: 600,
-      altText: null,
-      filename: `i${i}.jpg`,
-    }));
-    selectImages.mockResolvedValue(fakeImages);
-
-    const result = await getHomepageGridImages();
-    expect(result).toHaveLength(12);
-    expect(result.every((r) => r.gallerySlug === "places-trip")).toBe(true);
-  });
-
-  it("maps each image's gallerySlug from its galleryId, not from the first gallery", async () => {
-    findManyGalleries.mockResolvedValue([
-      { id: "g1", slug: "a", isPublished: 1 },
-      { id: "g2", slug: "b", isPublished: 1 },
-      { id: "g3", slug: "c", isPublished: 1 },
-    ]);
-    const fakeImages = [
-      { id: "i1", galleryId: "g1", thumbnailUrl: "u", width: 1, height: 1, altText: null, filename: "f" },
-      { id: "i2", galleryId: "g1", thumbnailUrl: "u", width: 1, height: 1, altText: null, filename: "f" },
-      { id: "i3", galleryId: "g2", thumbnailUrl: "u", width: 1, height: 1, altText: null, filename: "f" },
-      { id: "i4", galleryId: "g2", thumbnailUrl: "u", width: 1, height: 1, altText: null, filename: "f" },
-      { id: "i5", galleryId: "g2", thumbnailUrl: "u", width: 1, height: 1, altText: null, filename: "f" },
-      { id: "i6", galleryId: "g3", thumbnailUrl: "u", width: 1, height: 1, altText: null, filename: "f" },
-      { id: "i7", galleryId: "g3", thumbnailUrl: "u", width: 1, height: 1, altText: null, filename: "f" },
-      { id: "i8", galleryId: "g3", thumbnailUrl: "u", width: 1, height: 1, altText: null, filename: "f" },
-      { id: "i9", galleryId: "g3", thumbnailUrl: "u", width: 1, height: 1, altText: null, filename: "f" },
+  it("returns the joined rows and caps the query at 12", async () => {
+    const rows = [
+      { id: "i1", thumbnailUrl: "t1", width: 800, height: 600, altText: null, filename: "a.jpg", gallerySlug: "trip" },
+      { id: "i2", thumbnailUrl: "t2", width: 600, height: 800, altText: "alt", filename: "b.jpg", gallerySlug: "studio" },
     ];
-    selectImages.mockResolvedValue(fakeImages);
+    selectImages.mockResolvedValue(rows);
 
-    const images = await getHomepageGridImages();
-    const slugs = new Set(images.map((i) => i.gallerySlug));
-    expect(slugs.size).toBeGreaterThan(1);
-    for (const img of images) {
-      const expectedSlug =
-        img.id === "i1" || img.id === "i2"
-          ? "a"
-          : img.id === "i3" || img.id === "i4" || img.id === "i5"
-            ? "b"
-            : "c";
-      expect(img.gallerySlug).toBe(expectedSlug);
-    }
+    const result = await getHomepageGridImages();
+    expect(result).toEqual(rows);
+    expect(limitSpy).toHaveBeenCalledWith(12);
+  });
+});
+
+describe("getPublishedGalleryBySlugWithImages", () => {
+  beforeEach(() => {
+    findFirstGallery.mockReset();
+    findManyImages.mockReset();
+  });
+
+  it("returns null for an unknown slug", async () => {
+    findFirstGallery.mockResolvedValue(undefined);
+    expect(await getPublishedGalleryBySlugWithImages("nope")).toBeNull();
+    expect(findManyImages).not.toHaveBeenCalled();
+  });
+
+  it("returns null for an unpublished gallery (draft slugs are not public)", async () => {
+    findFirstGallery.mockResolvedValue({ id: "g1", slug: "draft", isPublished: 0 });
+    expect(await getPublishedGalleryBySlugWithImages("draft")).toBeNull();
+    expect(findManyImages).not.toHaveBeenCalled();
+  });
+
+  it("returns the gallery with images projected through toPublicImage (no s3Key)", async () => {
+    const gallery = { id: "g1", slug: "trip", title: "Trip", isPublished: 1 };
+    findFirstGallery.mockResolvedValue(gallery);
+    findManyImages.mockResolvedValue([
+      {
+        id: "i1",
+        galleryId: "g1",
+        filename: "a.jpg",
+        s3Key: "originals/i1.jpg",
+        cdnUrl: "https://cdn/originals/i1.jpg",
+        thumbnailUrl: "https://cdn/thumbnails/i1.webp",
+        displayUrl: "https://cdn/display/i1.webp",
+        width: 800,
+        height: 600,
+        altText: null,
+        sortOrder: 0,
+        createdAt: "2026-01-01",
+      },
+    ]);
+
+    const result = await getPublishedGalleryBySlugWithImages("trip");
+    expect(result?.gallery).toBe(gallery);
+    expect(result?.images).toEqual([
+      {
+        id: "i1",
+        thumbnailUrl: "https://cdn/thumbnails/i1.webp",
+        cdnUrl: "https://cdn/originals/i1.jpg",
+        displayUrl: "https://cdn/display/i1.webp",
+        width: 800,
+        height: 600,
+        altText: null,
+        filename: "a.jpg",
+      },
+    ]);
+    expect(result!.images[0]).not.toHaveProperty("s3Key");
   });
 });
 

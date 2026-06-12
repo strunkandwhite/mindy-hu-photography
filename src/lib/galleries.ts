@@ -18,8 +18,8 @@ export type PublicGalleryImage = {
   filename: string;
 };
 
-type HomepageGridImage = Omit<PublicGalleryImage, "cdnUrl" | "displayUrl"> & {
-  gallerySlug: string | null;
+export type HomepageGridImage = Omit<PublicGalleryImage, "cdnUrl" | "displayUrl"> & {
+  gallerySlug: string;
 };
 
 function toPublicImage(img: Image): PublicGalleryImage {
@@ -61,40 +61,23 @@ export async function getPublishedGalleriesWithCovers(): Promise<GalleryWithCove
 }
 
 const HOMEPAGE_GRID_MAX = 12;
-const HOMEPAGE_SAMPLE_SIZE = 60; // shuffle pool size
 
 export async function getHomepageGridImages(): Promise<HomepageGridImage[]> {
-  const publishedGalleries = await db.query.galleries.findMany({
-    where: eq(galleries.isPublished, 1),
-  });
-  if (publishedGalleries.length === 0) return [];
-
-  const galleryMap = new Map(publishedGalleries.map((g) => [g.id, g.slug]));
-  const galleryIds = publishedGalleries.map((g) => g.id);
-
-  // Sample at the DB layer instead of fetching every image.
-  const sampled = await db
-    .select()
+  return db
+    .select({
+      id: images.id,
+      thumbnailUrl: images.thumbnailUrl,
+      width: images.width,
+      height: images.height,
+      altText: images.altText,
+      filename: images.filename,
+      gallerySlug: galleries.slug,
+    })
     .from(images)
-    .where(inArray(images.galleryId, galleryIds))
+    .innerJoin(galleries, eq(images.galleryId, galleries.id))
+    .where(eq(galleries.isPublished, 1))
     .orderBy(sql`RANDOM()`)
-    .limit(HOMEPAGE_SAMPLE_SIZE);
-
-  // Shuffle the smaller sample (cheap) then slice.
-  for (let i = sampled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [sampled[i], sampled[j]] = [sampled[j], sampled[i]];
-  }
-
-  return sampled.slice(0, HOMEPAGE_GRID_MAX).map((img) => ({
-    id: img.id,
-    thumbnailUrl: img.thumbnailUrl,
-    width: img.width,
-    height: img.height,
-    altText: img.altText,
-    filename: img.filename,
-    gallerySlug: img.galleryId ? galleryMap.get(img.galleryId) ?? null : null,
-  }));
+    .limit(HOMEPAGE_GRID_MAX);
 }
 
 export async function getPublishedGalleryBySlugWithImages(

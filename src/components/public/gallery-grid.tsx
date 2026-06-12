@@ -28,7 +28,8 @@ export function GalleryGrid({ images }: GalleryGridProps) {
               height={image.height}
               className="w-full h-auto"
               sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              loading="lazy"
+              loading={index < 3 ? undefined : "lazy"}
+              preload={index < 3}
             />
           </button>
         ))}

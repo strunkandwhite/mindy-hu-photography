@@ -15,11 +15,11 @@ export type PublicGalleryImage = {
   width: number;
   height: number;
   altText: string | null;
-  filename: string;
 };
 
 export type HomepageGridImage = Omit<PublicGalleryImage, "cdnUrl" | "displayUrl"> & {
   gallerySlug: string;
+  galleryTitle: string;
 };
 
 function toPublicImage(img: Image): PublicGalleryImage {
@@ -31,7 +31,6 @@ function toPublicImage(img: Image): PublicGalleryImage {
     width: img.width,
     height: img.height,
     altText: img.altText,
-    filename: img.filename,
   };
 }
 
@@ -70,8 +69,8 @@ export async function getHomepageGridImages(): Promise<HomepageGridImage[]> {
       width: images.width,
       height: images.height,
       altText: images.altText,
-      filename: images.filename,
       gallerySlug: galleries.slug,
+      galleryTitle: galleries.title,
     })
     .from(images)
     .innerJoin(galleries, eq(images.galleryId, galleries.id))

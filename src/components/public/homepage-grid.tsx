@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { HomepageGridImage as GridImage } from "@/lib/galleries";
+import { publicImageAlt } from "@/lib/image-alt";
 
 function isLandscape(img: GridImage) {
   return img.width > img.height;
@@ -60,7 +61,7 @@ export function HomepageGrid({ images }: { images: GridImage[] }) {
       <Link href={`/portfolio/${img.gallerySlug}`} className="block">
         <Image
           src={img.thumbnailUrl}
-          alt={img.altText || img.filename}
+          alt={publicImageAlt(img, img.galleryTitle)}
           width={img.width}
           height={img.height}
           className="w-full h-auto transition-opacity duration-300 hover:opacity-90"

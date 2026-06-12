@@ -3,15 +3,17 @@
 import { useEffect, useCallback } from "react";
 import Image from "next/image";
 import type { PublicGalleryImage } from "@/lib/galleries";
+import { publicImageAlt } from "@/lib/image-alt";
 
 interface LightboxProps {
   images: PublicGalleryImage[];
+  galleryTitle: string;
   currentIndex: number;
   onClose: () => void;
   onNavigate: (index: number) => void;
 }
 
-export function Lightbox({ images, currentIndex, onClose, onNavigate }: LightboxProps) {
+export function Lightbox({ images, galleryTitle, currentIndex, onClose, onNavigate }: LightboxProps) {
   const image = images[currentIndex];
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < images.length - 1;
@@ -72,7 +74,7 @@ export function Lightbox({ images, currentIndex, onClose, onNavigate }: Lightbox
       <div className="max-w-[90vw] max-h-[90vh] relative" onClick={(e) => e.stopPropagation()}>
         <Image
           src={displaySrc(image)}
-          alt={image.altText || image.filename}
+          alt={publicImageAlt(image, galleryTitle)}
           width={image.width}
           height={image.height}
           className="max-w-full max-h-[90vh] object-contain"

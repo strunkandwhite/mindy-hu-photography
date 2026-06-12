@@ -11,6 +11,7 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:watch": "vitest",
+    "db:migrate": "tsx src/db/migrate.ts",
     "db:seed": "tsx src/db/seed.ts",
     "prepare": "husky"
   },
@@ -25,13 +26,6 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "sharp": "^0.34.5"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "sharp",
-      "unrs-resolver"
-    ]
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",

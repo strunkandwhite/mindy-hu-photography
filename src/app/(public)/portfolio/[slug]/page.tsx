@@ -29,7 +29,7 @@ export default async function GalleryPage({ params }: { params: Promise<{ slug: 
           )}
         </div>
         <div className="max-w-6xl mx-auto">
-          <GalleryGrid images={galleryImages} />
+          <GalleryGrid images={galleryImages} galleryTitle={gallery.title} />
         </div>
       </div>
     </div>

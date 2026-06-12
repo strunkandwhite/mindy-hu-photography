@@ -4,12 +4,14 @@ import { useState } from "react";
 import Image from "next/image";
 import { Lightbox } from "./lightbox";
 import type { PublicGalleryImage } from "@/lib/galleries";
+import { publicImageAlt } from "@/lib/image-alt";
 
 interface GalleryGridProps {
   images: PublicGalleryImage[];
+  galleryTitle: string;
 }
 
-export function GalleryGrid({ images }: GalleryGridProps) {
+export function GalleryGrid({ images, galleryTitle }: GalleryGridProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   return (
@@ -23,7 +25,7 @@ export function GalleryGrid({ images }: GalleryGridProps) {
           >
             <Image
               src={image.thumbnailUrl}
-              alt={image.altText || image.filename}
+              alt={publicImageAlt(image, galleryTitle)}
               width={image.width}
               height={image.height}
               className="w-full h-auto"
@@ -37,6 +39,7 @@ export function GalleryGrid({ images }: GalleryGridProps) {
       {lightboxIndex !== null && (
         <Lightbox
           images={images}
+          galleryTitle={galleryTitle}
           currentIndex={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
           onNavigate={setLightboxIndex}

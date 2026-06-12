@@ -45,8 +45,8 @@ describe("getHomepageGridImages", () => {
 
   it("returns the joined rows and caps the query at 12", async () => {
     const rows = [
-      { id: "i1", thumbnailUrl: "t1", width: 800, height: 600, altText: null, filename: "a.jpg", gallerySlug: "trip" },
-      { id: "i2", thumbnailUrl: "t2", width: 600, height: 800, altText: "alt", filename: "b.jpg", gallerySlug: "studio" },
+      { id: "i1", thumbnailUrl: "t1", width: 800, height: 600, altText: null, gallerySlug: "trip", galleryTitle: "Trip" },
+      { id: "i2", thumbnailUrl: "t2", width: 600, height: 800, altText: "alt", gallerySlug: "studio", galleryTitle: "Studio" },
     ];
     selectImages.mockResolvedValue(rows);
 
@@ -105,7 +105,6 @@ describe("getPublishedGalleryBySlugWithImages", () => {
         width: 800,
         height: 600,
         altText: null,
-        filename: "a.jpg",
       },
     ]);
     expect(result!.images[0]).not.toHaveProperty("s3Key");

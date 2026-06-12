@@ -88,7 +88,7 @@ export default function ImageUploader() {
             continue;
           }
 
-          const { uploadUrl, imageId, s3Key, ext } = await presignRes.json();
+          const { uploadUrl, imageId, s3Key } = await presignRes.json();
 
           const uploadRes = await fetch(uploadUrl, {
             method: "PUT",
@@ -105,7 +105,7 @@ export default function ImageUploader() {
           const registerRes = await fetch("/api/admin/images", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ imageId, s3Key, ext, filename: file.name }),
+            body: JSON.stringify({ imageId, s3Key, filename: file.name }),
           });
 
           if (!registerRes.ok) {

@@ -26,5 +26,5 @@ export const POST = withAdminAuth(async (request) => {
   const s3Key = getS3Key(imageId, ext);
   const uploadUrl = await createPresignedUploadUrl(s3Key, contentType);
 
-  return Response.json({ uploadUrl, imageId, s3Key, ext });
+  return Response.json({ uploadUrl, imageId, s3Key });
 });

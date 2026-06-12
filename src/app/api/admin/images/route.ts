@@ -10,15 +10,14 @@ export const POST = withAdminAuth(async (request) => {
   const parsed = await parseJsonBody<{
     imageId?: string;
     s3Key?: string;
-    ext?: string;
     filename?: string;
   }>(request);
   if (!parsed.ok) return parsed.response;
 
-  const { imageId, s3Key, ext, filename } = parsed.body;
-  if (!imageId || !s3Key || !ext || !filename) {
+  const { imageId, s3Key, filename } = parsed.body;
+  if (!imageId || !s3Key || !filename) {
     return Response.json(
-      { error: "imageId, s3Key, ext, and filename are required" },
+      { error: "imageId, s3Key, and filename are required" },
       { status: 400 },
     );
   }

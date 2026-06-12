@@ -77,12 +77,6 @@ export const PUT = withAdminAuth(async (request, { params }) => {
 export const DELETE = withAdminAuth(async (_request, { params }) => {
   const { id } = await params;
 
-  // Null out cover image reference
-  await db
-    .update(galleries)
-    .set({ coverImageId: null })
-    .where(eq(galleries.id, id));
-
   // Null out galleryId on all images in this gallery
   await db
     .update(images)

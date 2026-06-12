@@ -82,3 +82,24 @@ describe("processImage", () => {
     expect(result.height).toBe(200);
   });
 });
+
+describe("processImage display rendition", () => {
+  it("produces a webp display rendition capped at 2048px on the long edge", async () => {
+    const input = await createTestImage(3000, 2000);
+    const result = await processImage(input);
+
+    const displayMeta = await sharp(result.display).metadata();
+    expect(displayMeta.format).toBe("webp");
+    expect(displayMeta.width).toBe(2048);
+    expect(Math.max(displayMeta.width!, displayMeta.height!)).toBeLessThanOrEqual(2048);
+  });
+
+  it("does not upscale the display rendition for small images", async () => {
+    const input = await createTestImage(400, 300);
+    const result = await processImage(input);
+
+    const displayMeta = await sharp(result.display).metadata();
+    expect(displayMeta.width).toBe(400);
+    expect(displayMeta.height).toBe(300);
+  });
+});

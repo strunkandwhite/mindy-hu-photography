@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { submitContactForm } from "@/app/(public)/contact/actions";
+import { SESSION_TYPES, CONTACT_FIELD_LIMITS } from "@/lib/contact";
 
 export function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
@@ -43,6 +44,7 @@ export function ContactForm() {
           type="text"
           name="name"
           required
+          maxLength={CONTACT_FIELD_LIMITS.name}
           className="w-full px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-gray-400"
         />
       </div>
@@ -53,6 +55,7 @@ export function ContactForm() {
           type="email"
           name="email"
           required
+          maxLength={CONTACT_FIELD_LIMITS.email}
           className="w-full px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-gray-400"
         />
       </div>
@@ -62,6 +65,7 @@ export function ContactForm() {
           id="contact-phone"
           type="tel"
           name="phone"
+          maxLength={CONTACT_FIELD_LIMITS.phone}
           className="w-full px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-gray-400"
         />
       </div>
@@ -74,10 +78,11 @@ export function ContactForm() {
           className="w-full px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-gray-400 bg-white"
         >
           <option value="">Select...</option>
-          <option value="Portrait">Portrait</option>
-          <option value="Family">Family</option>
-          <option value="Engagement">Engagement</option>
-          <option value="Other">Other</option>
+          {SESSION_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {type}
+            </option>
+          ))}
         </select>
       </div>
       <div>
@@ -87,6 +92,7 @@ export function ContactForm() {
           name="message"
           required
           rows={5}
+          maxLength={CONTACT_FIELD_LIMITS.message}
           className="w-full px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-gray-400"
         />
       </div>

@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
+import { sendContactNotification } from "@/lib/email";
 
 const submissions: { email: string }[] = [];
 let contactFormEnabled = 1;
@@ -37,6 +38,7 @@ describe("submitContactForm", () => {
   beforeEach(() => {
     submissions.length = 0;
     contactFormEnabled = 1;
+    vi.mocked(sendContactNotification).mockClear();
   });
 
   it("rejects when contact form disabled", async () => {
@@ -69,5 +71,42 @@ describe("submitContactForm", () => {
     const { submitContactForm } = await import("@/app/(public)/contact/actions");
     await submitContactForm(validForm({ email: "JANE@Example.com" }));
     expect(submissions[0].email).toBe("jane@example.com");
+  });
+
+  it("rejects the 6th submission within the window for the same email", async () => {
+    const { submitContactForm } = await import("@/app/(public)/contact/actions");
+    for (let i = 0; i < 5; i++) submissions.push({ email: "jane@example.com" });
+
+    const result = await submitContactForm(validForm());
+    expect(result.error).toMatch(/too many/i);
+    expect(submissions).toHaveLength(5); // nothing inserted
+  });
+
+  it("rejects over-length fields", async () => {
+    const { submitContactForm } = await import("@/app/(public)/contact/actions");
+    const result = await submitContactForm(validForm({ message: "x".repeat(5001) }));
+    expect(result.error).toMatch(/too long/i);
+    expect(submissions).toHaveLength(0);
+  });
+
+  it("rejects File entries in string fields without throwing", async () => {
+    const { submitContactForm } = await import("@/app/(public)/contact/actions");
+    const fd = validForm();
+    fd.set("name", new Blob(["x"]), "evil.txt");
+    const result = await submitContactForm(fd);
+    expect(result.error).toMatch(/required/i);
+  });
+
+  it("returns success and sends the notification with the stored payload", async () => {
+    const { submitContactForm } = await import("@/app/(public)/contact/actions");
+    const result = await submitContactForm(validForm({ name: "  Jane  " }));
+    expect(result).toEqual({ success: true });
+    expect(vi.mocked(sendContactNotification)).toHaveBeenCalledWith({
+      name: "Jane",
+      email: "jane@example.com",
+      phone: null,
+      sessionType: "Family",
+      message: "Hello there.",
+    });
   });
 });

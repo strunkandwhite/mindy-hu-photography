@@ -6,7 +6,7 @@ export default async function ContactPage() {
   const settings = await getSettings();
   const aboutText = settings?.aboutText;
   const aboutImageUrl = settings?.aboutImageUrl ?? null;
-  const contactEmail = settings?.contactEmail?.trim();
+  const contactEmail = settings?.contactEmail;
 
   return (
     <div className="min-h-screen pt-28 px-6">

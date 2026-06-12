@@ -2,8 +2,7 @@ import { db } from "@/db/client";
 import { galleries } from "@/db/schema";
 import { eq, max } from "drizzle-orm";
 import { slugify } from "@/lib/slugify";
-import { withAdminAuth, parseJsonBody } from "@/lib/api-helpers";
-import { revalidatePath } from "next/cache";
+import { withAdminAuth, parseJsonBody, revalidatePublicGalleryPages } from "@/lib/api-helpers";
 
 export const POST = withAdminAuth(async (request) => {
   const parsed = await parseJsonBody<{ title?: string; description?: string }>(request);
@@ -49,8 +48,7 @@ export const POST = withAdminAuth(async (request) => {
 
   await db.insert(galleries).values(record);
 
-  revalidatePath("/galleries");
-  revalidatePath("/portfolio/[slug]", "page");
+  revalidatePublicGalleryPages();
 
   return Response.json(record, { status: 201 });
 });

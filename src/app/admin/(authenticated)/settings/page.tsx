@@ -1,10 +1,15 @@
 import { db } from "@/db/client";
 import { siteSettings } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import SettingsForm from "@/components/admin/settings-form";
-import { parseSocialLinks } from "@/lib/settings";
+import { parseSocialLinks, SETTINGS_ID } from "@/lib/settings";
 
 export default async function AdminSettingsPage() {
-  const rows = await db.select().from(siteSettings).limit(1);
+  const rows = await db
+    .select()
+    .from(siteSettings)
+    .where(eq(siteSettings.id, SETTINGS_ID))
+    .limit(1);
   const settings = rows[0];
 
   if (!settings) {

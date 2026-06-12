@@ -2,8 +2,7 @@ import { db } from "@/db/client";
 import { galleries, images } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { slugify } from "@/lib/slugify";
-import { withAdminAuth, parseJsonBody } from "@/lib/api-helpers";
-import { revalidatePath } from "next/cache";
+import { withAdminAuth, parseJsonBody, revalidatePublicGalleryPages } from "@/lib/api-helpers";
 
 export const PUT = withAdminAuth(async (request, { params }) => {
   const { id } = await params;
@@ -53,6 +52,10 @@ export const PUT = withAdminAuth(async (request, { params }) => {
     }
   }
 
+  if (body.isPublished !== undefined && body.isPublished !== 0 && body.isPublished !== 1) {
+    return Response.json({ error: "isPublished must be 0 or 1" }, { status: 400 });
+  }
+
   const updates: Record<string, unknown> = { updatedAt: new Date().toISOString() };
   if (body.title !== undefined) updates.title = body.title;
   if (normalizedSlug !== undefined) updates.slug = normalizedSlug;
@@ -60,18 +63,15 @@ export const PUT = withAdminAuth(async (request, { params }) => {
   if (body.isPublished !== undefined) updates.isPublished = body.isPublished;
   if (body.coverImageId !== undefined) updates.coverImageId = body.coverImageId;
 
-  await db.update(galleries).set(updates).where(eq(galleries.id, id));
-
-  const rows = await db
-    .select()
-    .from(galleries)
+  const [updated] = await db
+    .update(galleries)
+    .set(updates)
     .where(eq(galleries.id, id))
-    .limit(1);
+    .returning();
 
-  revalidatePath("/galleries");
-  revalidatePath("/portfolio/[slug]", "page");
+  revalidatePublicGalleryPages();
 
-  return Response.json(rows[0]);
+  return Response.json(updated);
 });
 
 export const DELETE = withAdminAuth(async (_request, { params }) => {
@@ -86,8 +86,7 @@ export const DELETE = withAdminAuth(async (_request, { params }) => {
   // Delete the gallery
   await db.delete(galleries).where(eq(galleries.id, id));
 
-  revalidatePath("/galleries");
-  revalidatePath("/portfolio/[slug]", "page");
+  revalidatePublicGalleryPages();
 
   return Response.json({ success: true });
 });

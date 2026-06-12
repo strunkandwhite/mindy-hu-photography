@@ -1,8 +1,7 @@
 import { db } from "@/db/client";
 import { images } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { withAdminAuth, parseJsonBody } from "@/lib/api-helpers";
-import { revalidatePath } from "next/cache";
+import { withAdminAuth, parseJsonBody, revalidatePublicGalleryPages } from "@/lib/api-helpers";
 
 export const PUT = withAdminAuth(async (request, { params }) => {
   const { id } = await params;
@@ -20,10 +19,13 @@ export const PUT = withAdminAuth(async (request, { params }) => {
       ? existing[0].altText
       : parsed.body.altText?.trim() || null;
 
-  await db.update(images).set({ altText }).where(eq(images.id, id));
-  const rows = await db.select().from(images).where(eq(images.id, id)).limit(1);
+  const [updated] = await db
+    .update(images)
+    .set({ altText })
+    .where(eq(images.id, id))
+    .returning();
 
-  revalidatePath("/portfolio/[slug]", "page");
+  revalidatePublicGalleryPages();
 
-  return Response.json(rows[0]);
+  return Response.json(updated);
 });

@@ -1,4 +1,5 @@
 import { validateSession } from "@/lib/auth";
+import { revalidatePath } from "next/cache";
 
 type ParseResult<T> =
   | { ok: true; body: T }
@@ -29,4 +30,10 @@ export function withAdminAuth<TParams extends Record<string, string> = Record<st
     // Static routes have no params object; their handlers never read ctx.params.
     return handler(request, routeCtx ?? ({} as RouteContext<TParams>));
   };
+}
+
+/** Invalidate every public page that renders gallery/image data. */
+export function revalidatePublicGalleryPages(): void {
+  revalidatePath("/galleries");
+  revalidatePath("/portfolio/[slug]", "page");
 }

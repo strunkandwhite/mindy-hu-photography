@@ -3,8 +3,7 @@ import { images, galleries } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getCdnUrl, getThumbnailKey, getDisplayKey, uploadBuffer, deleteS3Object, getObjectBufferWithSizeCap, ObjectTooLargeError } from "@/lib/s3";
 import { processImage } from "@/lib/images";
-import { withAdminAuth, parseJsonBody } from "@/lib/api-helpers";
-import { revalidatePath } from "next/cache";
+import { withAdminAuth, parseJsonBody, revalidatePublicGalleryPages } from "@/lib/api-helpers";
 
 export const POST = withAdminAuth(async (request) => {
   const parsed = await parseJsonBody<{
@@ -71,8 +70,7 @@ export const POST = withAdminAuth(async (request) => {
 
   await db.insert(images).values(record);
 
-  revalidatePath("/galleries");
-  revalidatePath("/portfolio/[slug]", "page");
+  revalidatePublicGalleryPages();
 
   return Response.json(record, { status: 201 });
 });
@@ -117,8 +115,7 @@ export const DELETE = withAdminAuth(async (request) => {
   // Delete from DB
   await db.delete(images).where(eq(images.id, imageId));
 
-  revalidatePath("/galleries");
-  revalidatePath("/portfolio/[slug]", "page");
+  revalidatePublicGalleryPages();
 
   return Response.json({ success: true });
 });

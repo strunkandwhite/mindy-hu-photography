@@ -17,9 +17,8 @@ const sans = Nunito_Sans({
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings();
-  const title = settings?.siteTitle?.trim() || "Mindy Hu Photography";
-  const description =
-    settings?.tagline?.trim() || "Portrait photography by Mindy Hu";
+  const title = settings?.siteTitle || "Mindy Hu Photography";
+  const description = settings?.tagline || "Portrait photography by Mindy Hu";
   return {
     metadataBase: new URL(
       process.env.NEXT_PUBLIC_SITE_URL || "https://mindyhuphotography.com",

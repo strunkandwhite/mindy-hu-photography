@@ -1,8 +1,7 @@
 import { db } from "@/db/client";
 import { images, galleries } from "@/db/schema";
 import { eq, ne, and, inArray } from "drizzle-orm";
-import { withAdminAuth, parseJsonBody } from "@/lib/api-helpers";
-import { revalidatePath } from "next/cache";
+import { withAdminAuth, parseJsonBody, revalidatePublicGalleryPages } from "@/lib/api-helpers";
 
 export const PUT = withAdminAuth(async (request) => {
   const parsed = await parseJsonBody<{
@@ -38,8 +37,7 @@ export const PUT = withAdminAuth(async (request) => {
   ];
   await db.batch(stmts as [(typeof stmts)[number], ...(typeof stmts)[number][]]);
 
-  revalidatePath("/galleries");
-  revalidatePath("/portfolio/[slug]", "page");
+  revalidatePublicGalleryPages();
 
   return Response.json({ success: true });
 });

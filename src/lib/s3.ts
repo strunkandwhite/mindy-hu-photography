@@ -9,6 +9,13 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const MAX_UPLOAD_BYTES = 30 * 1024 * 1024; // 30 MB
 
+export class ObjectTooLargeError extends Error {
+  constructor(s3Key: string, size: number, maxBytes: number) {
+    super(`Object ${s3Key} is ${size} bytes, exceeding the ${maxBytes}-byte cap`);
+    this.name = "ObjectTooLargeError";
+  }
+}
+
 let _client: S3Client | null = null;
 let _bucket: string | null = null;
 let _cloudfrontDomain: string | null = null;
@@ -107,8 +114,9 @@ export async function getObjectBufferWithSizeCap(
   const head = await getClient().send(
     new HeadObjectCommand({ Bucket: getBucket(), Key: s3Key }),
   );
-  if ((head.ContentLength ?? 0) > maxBytes) {
-    throw new Error(`Uploaded object exceeds ${maxBytes} bytes`);
+  const size = head.ContentLength ?? 0;
+  if (size > maxBytes) {
+    throw new ObjectTooLargeError(s3Key, size, maxBytes);
   }
   return getObjectBuffer(s3Key);
 }

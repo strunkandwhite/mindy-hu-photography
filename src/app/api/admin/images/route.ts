@@ -1,7 +1,7 @@
 import { db } from "@/db/client";
 import { images, galleries } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { getCdnUrl, getThumbnailKey, uploadBuffer, deleteS3Object, getObjectBufferWithSizeCap } from "@/lib/s3";
+import { getCdnUrl, getThumbnailKey, uploadBuffer, deleteS3Object, getObjectBufferWithSizeCap, ObjectTooLargeError } from "@/lib/s3";
 import { processImage } from "@/lib/images";
 import { withAdminAuth, parseJsonBody } from "@/lib/api-helpers";
 import { revalidatePath } from "next/cache";
@@ -26,11 +26,20 @@ export const POST = withAdminAuth(async (request) => {
   let buffer: Buffer;
   try {
     buffer = await getObjectBufferWithSizeCap(s3Key);
-  } catch {
-    await deleteS3Object(s3Key).catch(() => {});
+  } catch (err) {
+    if (err instanceof ObjectTooLargeError) {
+      await deleteS3Object(s3Key).catch((cleanupErr) => {
+        console.error("Failed to delete oversized upload:", cleanupErr);
+      });
+      return Response.json(
+        { error: "Uploaded file exceeds size limit" },
+        { status: 413 },
+      );
+    }
+    console.error("Failed to read uploaded object:", err);
     return Response.json(
-      { error: "Uploaded file exceeds size limit" },
-      { status: 413 },
+      { error: "Could not read the uploaded file. Please try again." },
+      { status: 502 },
     );
   }
   const { width, height, thumbnail } = await processImage(buffer);

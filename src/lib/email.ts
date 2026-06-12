@@ -15,6 +15,9 @@ function getClient(): SESClient {
   return _client;
 }
 
+// SES-verified identity used as both sender and recipient. Intentionally not
+// the admin-editable contactEmail setting: changing that must not silently
+// break notification delivery to an unverified address.
 const NOTIFICATION_EMAIL = "humindy@gmail.com";
 
 export async function sendContactNotification({

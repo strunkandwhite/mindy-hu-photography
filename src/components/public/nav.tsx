@@ -36,6 +36,8 @@ export function Nav() {
               </Link>
             );
           })}
+          {/* Intentionally hardcoded to match the reference design — not driven
+              by the admin socialLinks setting (which feeds the footer). */}
           <a
             href="https://instagram.com/huismindy/"
             target="_blank"

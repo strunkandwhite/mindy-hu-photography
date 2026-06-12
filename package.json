@@ -9,6 +9,7 @@
     "lint": "eslint",
     "lint:knip": "knip",
     "test": "vitest run",
+    "test:e2e": "playwright test",
     "test:watch": "vitest",
     "db:seed": "tsx src/db/seed.ts",
     "prepare": "husky"

@@ -6,7 +6,7 @@ export default defineConfig({
     baseURL: "http://localhost:3000",
   },
   webServer: {
-    command: "npm run dev",
+    command: "pnpm dev",
     port: 3000,
     reuseExistingServer: true,
   },

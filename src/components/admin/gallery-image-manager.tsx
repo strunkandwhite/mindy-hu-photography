@@ -29,62 +29,67 @@ export function GalleryImageManager({
   const [editingAltId, setEditingAltId] = useState<string | null>(null);
   const [altDraft, setAltDraft] = useState("");
 
-  async function saveAlt(imageId: string) {
+  async function mutate(imageId: string, request: () => Promise<Response>): Promise<boolean> {
     setBusyId(imageId);
-    await fetch(`/api/admin/images/${imageId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ altText: altDraft }),
-    });
-    setEditingAltId(null);
-    setBusyId(null);
-    router.refresh();
+    try {
+      const res = await request();
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error ?? "Operation failed.");
+        return false;
+      }
+      router.refresh();
+      return true;
+    } catch {
+      alert("Network error. Please try again.");
+      return false;
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function saveAlt(imageId: string) {
+    if (busyId === imageId) return; // Enter and blur can both fire for one edit
+    const ok = await mutate(imageId, () =>
+      fetch(`/api/admin/images/${imageId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ altText: altDraft }),
+      }),
+    );
+    if (ok) setEditingAltId(null);
   }
 
   async function setCover(imageId: string) {
-    setBusyId(imageId);
-    await fetch(`/api/admin/galleries/${galleryId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ coverImageId: imageId }),
-    });
-    setBusyId(null);
-    router.refresh();
-  }
-
-  async function clearCoverIfMatches(imageId: string) {
-    if (coverImageId !== imageId) return;
-    await fetch(`/api/admin/galleries/${galleryId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ coverImageId: null }),
-    });
+    await mutate(imageId, () =>
+      fetch(`/api/admin/galleries/${galleryId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ coverImageId: imageId }),
+      }),
+    );
   }
 
   async function removeFromGallery(imageId: string) {
     if (!confirm("Remove this image from the gallery? It will move to Unsorted.")) return;
-    setBusyId(imageId);
-    await clearCoverIfMatches(imageId);
-    await fetch("/api/admin/images/assign", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ imageIds: [imageId], galleryId: null }),
-    });
-    setBusyId(null);
-    router.refresh();
+    await mutate(imageId, () =>
+      fetch("/api/admin/images/assign", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageIds: [imageId], galleryId: null }),
+      }),
+    );
   }
 
   async function moveTo(imageId: string, targetGalleryId: string) {
     if (!targetGalleryId) return;
-    setBusyId(imageId);
-    await clearCoverIfMatches(imageId);
-    await fetch("/api/admin/images/assign", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ imageIds: [imageId], galleryId: targetGalleryId }),
-    });
-    setBusyId(null);
-    router.refresh();
+    await mutate(imageId, () =>
+      fetch("/api/admin/images/assign", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageIds: [imageId], galleryId: targetGalleryId }),
+      }),
+    );
   }
 
   if (images.length === 0) {

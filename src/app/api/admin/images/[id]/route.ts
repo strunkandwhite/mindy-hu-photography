@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { withAdminAuth, parseJsonBody } from "@/lib/api-helpers";
 import { revalidatePath } from "next/cache";
 
-export const PATCH = withAdminAuth(async (request, { params }) => {
+export const PUT = withAdminAuth(async (request, { params }) => {
   if (!params) return Response.json({ error: "Missing id" }, { status: 400 });
   const { id } = await params;
 

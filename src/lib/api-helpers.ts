@@ -16,19 +16,17 @@ export async function parseJsonBody<T>(request: Request): Promise<ParseResult<T>
   }
 }
 
-type AdminContext = { sessionId: string };
+type RouteContext<TParams> = { params: Promise<TParams> };
 
 export function withAdminAuth<TParams extends Record<string, string> = Record<string, string>>(
-  handler: (
-    request: Request,
-    ctx: AdminContext & { params?: Promise<TParams> },
-  ) => Promise<Response>,
+  handler: (request: Request, ctx: RouteContext<TParams>) => Promise<Response>,
 ) {
-  return async (request: Request, routeCtx?: { params: Promise<TParams> }) => {
+  return async (request: Request, routeCtx?: RouteContext<TParams>) => {
     const sessionId = await validateSession(request);
     if (!sessionId) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-    return handler(request, { sessionId, params: routeCtx?.params });
+    // Static routes have no params object; their handlers never read ctx.params.
+    return handler(request, routeCtx ?? ({} as RouteContext<TParams>));
   };
 }

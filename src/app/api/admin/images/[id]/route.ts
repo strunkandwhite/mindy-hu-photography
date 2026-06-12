@@ -5,7 +5,6 @@ import { withAdminAuth, parseJsonBody } from "@/lib/api-helpers";
 import { revalidatePath } from "next/cache";
 
 export const PUT = withAdminAuth(async (request, { params }) => {
-  if (!params) return Response.json({ error: "Missing id" }, { status: 400 });
   const { id } = await params;
 
   const parsed = await parseJsonBody<{ altText?: string | null }>(request);

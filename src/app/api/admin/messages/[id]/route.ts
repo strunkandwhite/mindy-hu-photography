@@ -4,7 +4,6 @@ import { eq } from "drizzle-orm";
 import { withAdminAuth, parseJsonBody } from "@/lib/api-helpers";
 
 export const PUT = withAdminAuth(async (request, { params }) => {
-  if (!params) return Response.json({ error: "Missing id" }, { status: 400 });
   const { id } = await params;
 
   // Check existence first
@@ -39,7 +38,6 @@ export const PUT = withAdminAuth(async (request, { params }) => {
 });
 
 export const DELETE = withAdminAuth(async (_request, { params }) => {
-  if (!params) return Response.json({ error: "Missing id" }, { status: 400 });
   const { id } = await params;
 
   await db

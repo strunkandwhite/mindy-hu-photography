@@ -33,16 +33,19 @@ describe("withAdminAuth", () => {
     vi.doUnmock("@/lib/auth");
   });
 
-  it("calls handler with sessionId when authenticated", async () => {
+  it("calls the handler when authenticated and passes route params through", async () => {
     vi.resetModules();
     vi.doMock("@/lib/auth", () => ({ validateSession: async () => "sid-123" }));
     const { withAdminAuth } = await import("@/lib/api-helpers");
-    const handler = withAdminAuth(async (_req, ctx) =>
-      Response.json({ sid: ctx.sessionId }),
-    );
-    const res = await handler(new Request("http://x"));
+    const handler = withAdminAuth<{ id: string }>(async (_req, ctx) => {
+      const { id } = await ctx.params;
+      return Response.json({ id });
+    });
+    const res = await handler(new Request("http://x"), {
+      params: Promise.resolve({ id: "g1" }),
+    });
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ sid: "sid-123" });
+    expect(await res.json()).toEqual({ id: "g1" });
     vi.doUnmock("@/lib/auth");
   });
 });

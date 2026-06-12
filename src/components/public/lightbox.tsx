@@ -15,6 +15,12 @@ export function Lightbox({ images, currentIndex, onClose, onNavigate }: Lightbox
   const image = images[currentIndex];
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < images.length - 1;
+  const prevImage = hasPrev ? images[currentIndex - 1] : null;
+  const nextImage = hasNext ? images[currentIndex + 1] : null;
+
+  function displaySrc(img: PublicGalleryImage): string {
+    return img.displayUrl ?? img.cdnUrl;
+  }
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -65,13 +71,13 @@ export function Lightbox({ images, currentIndex, onClose, onNavigate }: Lightbox
 
       <div className="max-w-[90vw] max-h-[90vh] relative" onClick={(e) => e.stopPropagation()}>
         <Image
-          src={image.cdnUrl}
+          src={displaySrc(image)}
           alt={image.altText || image.filename}
           width={image.width}
           height={image.height}
           className="max-w-full max-h-[90vh] object-contain"
           sizes="90vw"
-          priority
+          preload
         />
       </div>
 
@@ -90,6 +96,30 @@ export function Lightbox({ images, currentIndex, onClose, onNavigate }: Lightbox
 
       <div className="absolute bottom-4 text-white/40 text-xs tracking-wider">
         {currentIndex + 1} / {images.length}
+      </div>
+
+      {/* Preload neighbors so arrow-key navigation is instant */}
+      <div className="hidden" aria-hidden="true">
+        {prevImage && (
+          <Image
+            src={displaySrc(prevImage)}
+            alt=""
+            width={prevImage.width}
+            height={prevImage.height}
+            sizes="90vw"
+            preload
+          />
+        )}
+        {nextImage && (
+          <Image
+            src={displaySrc(nextImage)}
+            alt=""
+            width={nextImage.width}
+            height={nextImage.height}
+            sizes="90vw"
+            preload
+          />
+        )}
       </div>
     </div>
   );

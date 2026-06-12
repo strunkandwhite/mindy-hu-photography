@@ -1,0 +1,1 @@
+ALTER TABLE `images` ADD `display_url` text;

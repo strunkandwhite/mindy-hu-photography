@@ -1,7 +1,7 @@
 import { db } from "@/db/client";
 import { images, galleries } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { getCdnUrl, getThumbnailKey, uploadBuffer, deleteS3Object, getObjectBufferWithSizeCap, ObjectTooLargeError } from "@/lib/s3";
+import { getCdnUrl, getThumbnailKey, getDisplayKey, uploadBuffer, deleteS3Object, getObjectBufferWithSizeCap, ObjectTooLargeError } from "@/lib/s3";
 import { processImage } from "@/lib/images";
 import { withAdminAuth, parseJsonBody } from "@/lib/api-helpers";
 import { revalidatePath } from "next/cache";
@@ -42,14 +42,19 @@ export const POST = withAdminAuth(async (request) => {
       { status: 502 },
     );
   }
-  const { width, height, thumbnail } = await processImage(buffer);
+  const { width, height, thumbnail, display } = await processImage(buffer);
   const cdnUrl = getCdnUrl(s3Key);
 
-  // Upload thumbnail to S3
+  // Upload renditions to S3
   const thumbnailKey = getThumbnailKey(imageId);
-  await uploadBuffer(thumbnailKey, thumbnail, "image/webp");
+  const displayKey = getDisplayKey(imageId);
+  await Promise.all([
+    uploadBuffer(thumbnailKey, thumbnail, "image/webp"),
+    uploadBuffer(displayKey, display, "image/webp"),
+  ]);
 
   const thumbnailUrl = getCdnUrl(thumbnailKey);
+  const displayUrl = getCdnUrl(displayKey);
   const now = new Date().toISOString();
 
   const record = {
@@ -58,6 +63,7 @@ export const POST = withAdminAuth(async (request) => {
     s3Key,
     cdnUrl,
     thumbnailUrl,
+    displayUrl,
     width,
     height,
     sortOrder: 0,
@@ -102,11 +108,11 @@ export const DELETE = withAdminAuth(async (request) => {
     .set({ coverImageId: null })
     .where(eq(galleries.coverImageId, imageId));
 
-  // Delete original and thumbnail from S3
-  const thumbnailKey = getThumbnailKey(imageId);
+  // Delete original, thumbnail, and display rendition from S3
   await Promise.all([
     deleteS3Object(image.s3Key),
-    deleteS3Object(thumbnailKey),
+    deleteS3Object(getThumbnailKey(imageId)),
+    deleteS3Object(getDisplayKey(imageId)),
   ]);
 
   // Delete from DB

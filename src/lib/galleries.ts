@@ -11,13 +11,14 @@ export type PublicGalleryImage = {
   id: string;
   thumbnailUrl: string;
   cdnUrl: string;
+  displayUrl: string | null;
   width: number;
   height: number;
   altText: string | null;
   filename: string;
 };
 
-type HomepageGridImage = Omit<PublicGalleryImage, "cdnUrl"> & {
+type HomepageGridImage = Omit<PublicGalleryImage, "cdnUrl" | "displayUrl"> & {
   gallerySlug: string | null;
 };
 
@@ -26,6 +27,7 @@ function toPublicImage(img: Image): PublicGalleryImage {
     id: img.id,
     thumbnailUrl: img.thumbnailUrl,
     cdnUrl: img.cdnUrl,
+    displayUrl: img.displayUrl,
     width: img.width,
     height: img.height,
     altText: img.altText,

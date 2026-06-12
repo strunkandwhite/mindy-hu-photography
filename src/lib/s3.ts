@@ -55,6 +55,10 @@ export function getThumbnailKey(imageId: string): string {
   return `thumbnails/${imageId}.webp`;
 }
 
+export function getDisplayKey(imageId: string): string {
+  return `display/${imageId}.webp`;
+}
+
 export function getCdnUrl(s3Key: string): string {
   return `https://${getCloudfrontDomain()}/${s3Key}`;
 }

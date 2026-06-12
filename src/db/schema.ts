@@ -48,6 +48,7 @@ export const images = sqliteTable(
     s3Key: text("s3_key").notNull(),
     cdnUrl: text("cdn_url").notNull(),
     thumbnailUrl: text("thumbnail_url").notNull(),
+    displayUrl: text("display_url"), // ~2048px webp; null for images uploaded before 2026-06
     width: integer("width").notNull(),
     height: integer("height").notNull(),
     altText: text("alt_text"),

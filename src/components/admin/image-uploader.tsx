@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, type DragEvent } from "react";
 import { useRouter } from "next/navigation";
+import { ACCEPTED_IMAGE_TYPES } from "@/lib/image-types";
 
 type UploadState = {
   id: string;
@@ -10,12 +11,7 @@ type UploadState = {
   error?: string;
 };
 
-const ACCEPTED_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/tiff",
-]);
+const ACCEPTED_TYPES = new Set(ACCEPTED_IMAGE_TYPES);
 
 const SIZE_WARNING_BYTES = 20 * 1024 * 1024;
 
@@ -182,7 +178,7 @@ export default function ImageUploader() {
           ref={fileInputRef}
           type="file"
           multiple
-          accept="image/jpeg,image/png,image/webp,image/tiff"
+          accept={ACCEPTED_IMAGE_TYPES.join(",")}
           onChange={handleFileSelect}
           className="hidden"
         />

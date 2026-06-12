@@ -1,19 +1,6 @@
 import { getS3Key, createPresignedUploadUrl } from "@/lib/s3";
 import { withAdminAuth, parseJsonBody } from "@/lib/api-helpers";
-
-const ALLOWED_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/tiff",
-]);
-
-const EXT_MAP: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-  "image/tiff": "tiff",
-};
+import { IMAGE_EXT_BY_TYPE } from "@/lib/image-types";
 
 export const POST = withAdminAuth(async (request) => {
   const parsed = await parseJsonBody<{ filename?: string; contentType?: string }>(request);
@@ -27,7 +14,8 @@ export const POST = withAdminAuth(async (request) => {
     );
   }
 
-  if (!ALLOWED_TYPES.has(contentType)) {
+  const ext = contentType ? IMAGE_EXT_BY_TYPE[contentType] : undefined;
+  if (!ext) {
     return Response.json(
       { error: "Unsupported content type. Allowed: jpeg, png, webp, tiff" },
       { status: 400 },
@@ -35,7 +23,6 @@ export const POST = withAdminAuth(async (request) => {
   }
 
   const imageId = crypto.randomUUID();
-  const ext = EXT_MAP[contentType];
   const s3Key = getS3Key(imageId, ext);
   const uploadUrl = await createPresignedUploadUrl(s3Key, contentType);
 

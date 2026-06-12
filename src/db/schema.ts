@@ -60,6 +60,18 @@ export const images = sqliteTable(
   }),
 );
 
+export const loginAttempts = sqliteTable(
+  "login_attempts",
+  {
+    id: text("id").primaryKey(),
+    ip: text("ip").notNull(),
+    attemptedAt: text("attempted_at").notNull(),
+  },
+  (table) => ({
+    ipIdx: index("login_attempts_ip_idx").on(table.ip, table.attemptedAt),
+  }),
+);
+
 export const contactSubmissions = sqliteTable("contact_submissions", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),

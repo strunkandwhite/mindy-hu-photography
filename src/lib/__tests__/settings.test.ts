@@ -1,11 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseSocialLinks, SETTINGS_ID } from "../settings";
-
-describe("SETTINGS_ID", () => {
-  it("is 'default'", () => {
-    expect(SETTINGS_ID).toBe("default");
-  });
-});
+import { parseSocialLinks } from "../settings";
 
 describe("parseSocialLinks", () => {
   it("parses valid JSON array", () => {

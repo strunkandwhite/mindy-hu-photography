@@ -29,6 +29,6 @@ test("admin redirects to login", async ({ page }) => {
 
 test("login page loads", async ({ page }) => {
   await page.goto("/admin/login");
-  await expect(page.locator("text=Admin")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Admin Login" })).toBeVisible();
   await expect(page.locator('input[type="email"]')).toBeVisible();
 });

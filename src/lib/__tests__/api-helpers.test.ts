@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { parseJsonBody } from "@/lib/api-helpers";
 
 describe("parseJsonBody", () => {
@@ -23,6 +23,10 @@ describe("parseJsonBody", () => {
 });
 
 describe("withAdminAuth", () => {
+  afterEach(() => {
+    vi.doUnmock("@/lib/auth");
+  });
+
   it("returns 401 when validateSession returns null", async () => {
     vi.resetModules();
     vi.doMock("@/lib/auth", () => ({ validateSession: async () => null }));
@@ -30,7 +34,6 @@ describe("withAdminAuth", () => {
     const handler = withAdminAuth(async () => Response.json({ ok: true }));
     const res = await handler(new Request("http://x"));
     expect(res.status).toBe(401);
-    vi.doUnmock("@/lib/auth");
   });
 
   it("calls the handler when authenticated and passes route params through", async () => {
@@ -46,6 +49,5 @@ describe("withAdminAuth", () => {
     });
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ id: "g1" });
-    vi.doUnmock("@/lib/auth");
   });
 });

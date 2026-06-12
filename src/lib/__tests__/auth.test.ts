@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   createSessionCookie,
   parseSessionCookie,
@@ -72,6 +72,10 @@ describe("getNewExpiresAt", () => {
 describe("validateSession", () => {
   beforeEach(() => vi.resetModules());
 
+  afterEach(() => {
+    vi.doUnmock("@/db/client");
+  });
+
   it("returns null when no cookie header", async () => {
     const { validateSession } = await import("@/lib/auth");
     const sid = await validateSession({ headers: { get: () => null } });
@@ -118,7 +122,6 @@ describe("validateSession", () => {
     });
     expect(sid).toBeNull();
     expect(deleted).toContain("sid-1");
-    vi.doUnmock("@/db/client");
   });
 
   it("returns sessionId and refreshes expiry on valid session", async () => {
@@ -155,6 +158,5 @@ describe("validateSession", () => {
     });
     expect(sid).toBe("sid-1");
     expect(updated).toBe(true);
-    vi.doUnmock("@/db/client");
   });
 });

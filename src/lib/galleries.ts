@@ -1,6 +1,6 @@
 import { db } from "@/db/client";
 import { galleries, images } from "@/db/schema";
-import { eq, asc, inArray, sql } from "drizzle-orm";
+import { eq, and, asc, inArray, sql } from "drizzle-orm";
 
 type Gallery = typeof galleries.$inferSelect;
 type Image = typeof images.$inferSelect;
@@ -74,7 +74,7 @@ export async function getHomepageGridImages(): Promise<HomepageGridImage[]> {
     })
     .from(images)
     .innerJoin(galleries, eq(images.galleryId, galleries.id))
-    .where(eq(galleries.isPublished, 1))
+    .where(and(eq(galleries.isPublished, 1), eq(galleries.showOnHomepage, 1)))
     .orderBy(sql`RANDOM()`)
     .limit(HOMEPAGE_GRID_MAX);
 }

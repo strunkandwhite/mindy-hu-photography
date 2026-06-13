@@ -35,5 +35,10 @@ export function withAdminAuth<TParams extends Record<string, string> = Record<st
 /** Invalidate every public page that renders gallery/image data. */
 export function revalidatePublicGalleryPages(): void {
   revalidatePath("/galleries");
-  revalidatePath("/portfolio/[slug]", "page");
+  // The page-pattern tag for a route-group page includes the group segment
+  // (the page renders from `app/(public)/portfolio/[slug]`). Omitting "(public)"
+  // produces a tag that never matches, so removed/edited images stay cached.
+  // A literal path like "/galleries" matches the group-free pathname tag, so it
+  // doesn't need the prefix — only the "[slug]" page pattern does.
+  revalidatePath("/(public)/portfolio/[slug]", "page");
 }

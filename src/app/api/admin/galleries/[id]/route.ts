@@ -23,6 +23,7 @@ export const PUT = withAdminAuth(async (request, { params }) => {
     slug?: string;
     description?: string;
     isPublished?: number;
+    showOnHomepage?: number;
     coverImageId?: string | null;
   }>(request);
   if (!parsed.ok) return parsed.response;
@@ -56,11 +57,16 @@ export const PUT = withAdminAuth(async (request, { params }) => {
     return Response.json({ error: "isPublished must be 0 or 1" }, { status: 400 });
   }
 
+  if (body.showOnHomepage !== undefined && body.showOnHomepage !== 0 && body.showOnHomepage !== 1) {
+    return Response.json({ error: "showOnHomepage must be 0 or 1" }, { status: 400 });
+  }
+
   const updates: Record<string, unknown> = { updatedAt: new Date().toISOString() };
   if (body.title !== undefined) updates.title = body.title;
   if (normalizedSlug !== undefined) updates.slug = normalizedSlug;
   if (body.description !== undefined) updates.description = body.description;
   if (body.isPublished !== undefined) updates.isPublished = body.isPublished;
+  if (body.showOnHomepage !== undefined) updates.showOnHomepage = body.showOnHomepage;
   if (body.coverImageId !== undefined) updates.coverImageId = body.coverImageId;
 
   const [updated] = await db

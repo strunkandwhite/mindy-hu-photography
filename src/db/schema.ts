@@ -35,6 +35,7 @@ export const galleries = sqliteTable("galleries", {
   coverImageId: text("cover_image_id"),
   sortOrder: integer("sort_order").default(0).notNull(),
   isPublished: integer("is_published").default(0).notNull(),
+  showOnHomepage: integer("show_on_homepage").default(1).notNull(),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 });
